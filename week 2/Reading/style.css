@@ -1,29 +1,154 @@
+/*
+    body 表示整个网页的主体。
+
+    HTML 里的：
+
+    <body>
+        ...
+    </body>
+
+    会受到这里这些 CSS 设置的影响。
+*/
 body {
+
+    /*
+        font-family 控制字体。
+
+        优先使用 Arial。
+        如果电脑没有 Arial，
+        就使用系统默认的 sans-serif 字体。
+    */
     font-family: Arial, sans-serif;
+
+
+    /*
+        background-color 控制网页背景颜色。
+
+        #f4f4f4 是 HEX 色号，
+        是一种非常浅的灰色。
+    */
     background-color: #f4f4f4;
+
+
+    /*
+        margin 表示网页内容与浏览器边缘之间的距离。
+
+        40px = 40 pixels。
+    */
     margin: 40px;
 }
 
+
+/*
+    h1 对应 HTML 里面所有的：
+
+    <h1>...</h1>
+
+    所以这里是在控制一级标题。
+*/
 h1 {
+
+    /*
+        color 控制文字颜色。
+    */
     color: darkblue;
+
+
+    /*
+        font-size 控制字体大小。
+
+        36px = 36 pixels。
+    */
     font-size: 36px;
 }
 
+
+/*
+    h2 对应：
+
+    <h2>...</h2>
+
+    也就是二级标题。
+*/
 h2 {
+
+    /*
+        #333333 是深灰色。
+    */
     color: #333333;
 }
 
+
+/*
+    p 对应 HTML 里面所有：
+
+    <p>...</p>
+
+    也就是正文段落。
+*/
 p {
+
+    /*
+        把正文文字设置成灰色。
+    */
     color: gray;
+
+
+    /*
+        正文字号设置为 16px。
+    */
     font-size: 16px;
 }
 
+
+/*
+    li 对应：
+
+    <li>...</li>
+
+    也就是列表里面的每一个项目。
+*/
 li {
+
+    /*
+        margin-bottom 表示每一项下面增加空间。
+
+        这样列表不会挤在一起。
+    */
     margin-bottom: 8px;
 }
 
+
+/*
+    button 对应 HTML 里面所有：
+
+    <button>...</button>
+*/
 button {
+
+    /*
+        padding 是按钮文字和按钮边缘之间的空间。
+
+        10px = 上下
+        16px = 左右
+
+        所以可以理解成：
+
+        padding: 上下 左右;
+    */
     padding: 10px 16px;
+
+
+    /*
+        控制按钮里面文字的大小。
+    */
     font-size: 14px;
+
+
+    /*
+        cursor 控制鼠标放在按钮上时的形状。
+
+        pointer 会让鼠标变成“小手”。
+    */
     cursor: pointer;
 }

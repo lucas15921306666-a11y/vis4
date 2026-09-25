@@ -1,38 +1,129 @@
+<!-- 告诉浏览器：这个文件使用 HTML5 标准 -->
 <!DOCTYPE html>
+
+<!-- <html> 表示整个网页从这里开始 -->
 <html>
+
+<!-- <head> 里面放网页的设置、标题、CSS链接等，不是主要可见内容 -->
 <head>
+
+    <!-- <title> 控制浏览器标签页上显示的名字 -->
     <title>Week 2 Reading</title>
+
+    <!--
+        <link> 用来连接外部文件。
+        rel="stylesheet" 表示这个文件是 CSS 样式表。
+        href="style.css" 表示要连接同一文件夹里的 style.css。
+    -->
     <link rel="stylesheet" href="style.css">
+
+<!-- </head> 表示网页设置部分结束 -->
 </head>
 
+
+<!-- <body> 里面放用户在网页中真正能看到的内容 -->
 <body>
 
+
+    <!--
+        <h1> 是 Heading 1，也就是一级标题。
+        一般用来表示网页最主要的标题。
+    -->
     <h1>Welcome to My Week 2 Page</h1>
 
+
+    <!--
+        <p> 表示 paragraph，也就是普通正文段落。
+    -->
     <p>
         This page is my first HTML and CSS exercise.
     </p>
 
+
+    <!--
+        <h2> 是二级标题。
+        它的层级比 h1 低一级。
+    -->
     <h2>What I learned</h2>
 
+
+    <!--
+        <ul> 表示 unordered list，
+        也就是没有数字顺序的项目列表。
+    -->
     <ul>
+
+        <!--
+            <li> 表示 list item，
+            也就是列表里面的一项。
+        -->
         <li>HTML creates the structure of a webpage.</li>
+
+        <!-- 第二个列表项目 -->
         <li>CSS controls the visual style.</li>
+
+        <!-- 第三个列表项目 -->
         <li>JavaScript can add interaction.</li>
+
+    <!-- </ul> 表示这个列表结束 -->
     </ul>
 
+
+    <!--
+        <button> 创建一个可以点击的按钮。
+
+        id="colorButton"
+        相当于给这个按钮取了一个独一无二的名字。
+
+        JavaScript 后面可以通过这个名字找到它。
+    -->
     <button id="colorButton">Change Heading Color</button>
 
+
+    <!--
+        <script> 表示这里开始写 JavaScript。
+
+        JavaScript 主要负责网页的 interaction / behavior，
+        例如点击按钮以后发生什么。
+    -->
     <script>
+
+        // document 表示当前整个网页。
+
+        // getElementById("colorButton")
+        // 表示在网页里找到 id 叫 colorButton 的元素。
         document
             .getElementById("colorButton")
+
+            // addEventListener 表示监听用户的操作。
+            // "click" 表示我们现在监听的是鼠标点击。
             .addEventListener("click", function() {
+
+                // console.log 会在 Chrome Console 里打印文字。
+                // 方便我们测试按钮到底有没有被点击。
+                console.log("Button clicked!");
+
+                // querySelector("h1")
+                // 表示找到网页中的 h1 标题。
                 document
                     .querySelector("h1")
+
+                    // .style 表示我们要修改这个元素的 CSS 样式。
                     .style
+
+                    // .color = "green"
+                    // 表示把 h1 的文字颜色改成绿色。
                     .color = "green";
+
             });
+
+    <!-- </script> 表示 JavaScript 部分结束 -->
     </script>
 
+
+<!-- </body> 表示网页中可见内容结束 -->
 </body>
+
+
+<!-- </html> 表示整个 HTML 文件结束 -->
 </html>
