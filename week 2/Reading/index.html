@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Week 2 Reading</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>Welcome to My Week 2 Page</h1>
+
+    <p>
+        This page is my first HTML and CSS exercise.
+    </p>
+
+    <h2>What I learned</h2>
+
+    <ul>
+        <li>HTML creates the structure of a webpage.</li>
+        <li>CSS controls the visual style.</li>
+        <li>JavaScript can add interaction.</li>
+    </ul>
+
+    <button id="colorButton">Change Heading Color</button>
+
+    <script>
+        document
+            .getElementById("colorButton")
+            .addEventListener("click", function() {
+                document
+                    .querySelector("h1")
+                    .style
+                    .color = "green";
+            });
+    </script>
+
+</body>
+</html>
