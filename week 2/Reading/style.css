@@ -14,9 +14,7 @@ body {
     /*
         font-family 控制字体。
 
-        优先使用 Arial。
-        如果电脑没有 Arial，
-        就使用系统默认的 sans-serif 字体。
+        优先使用 Arial。如果电脑没有 Arial，就使用系统默认的 sans-serif 字体。
     */
     font-family: Arial, sans-serif;
 
