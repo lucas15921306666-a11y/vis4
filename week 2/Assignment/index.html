@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Lucas's Number Adder</title>
+
+    <!-- Link to the separate CSS file -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+
+<body>
+
+    <!-- =========================
+         HEADER
+         ========================= -->
+    <div id="header">
+
+        <!-- Assignment requires first name + Number Adder -->
+        <h1>Lucas's Number Adder</h1>
+
+        <h4>Item 1</h4>
+        <h4>Item 2</h4>
+        <h4>Item 3</h4>
+
+    </div>
+
+
+    <!-- =========================
+         PAGE CONTENT
+         ========================= -->
+    <div id="page-content">
+
+
+        <!-- =========================
+             SIDEBAR
+             ========================= -->
+        <div id="sidebar">
+
+            <h3>Result</h3>
+
+            <!--
+            JavaScript will update this paragraph.
+            The ID is required by the assignment.
+            -->
+            <p id="resultId">0</p>
+
+        </div>
+
+
+        <!-- =========================
+             MAIN CONTENT
+             ========================= -->
+        <div id="main-content">
+
+            <h3>Control Center</h3>
+
+
+            <!-- Buttons are inside a Flexbox container -->
+            <div id="button-container">
+
+                <button id="minusTwoBtn">-2</button>
+
+                <button id="minusOneBtn">-1</button>
+
+                <button id="resetBtn">Reset</button>
+
+                <button id="plusOneBtn">+1</button>
+
+                <button id="plusTwoBtn">+2</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         JAVASCRIPT
+         ========================= -->
+
+    <script>
+
+        // Start the result at 0
+        var total = 0;
+
+
+        // -------------------------
+        // -2 BUTTON
+        // -------------------------
+
+        document
+            .getElementById("minusTwoBtn")
+            .addEventListener("click", function() {
+
+                // Subtract 2 from the current total
+                total = total - 2;
+
+                // Display the new total
+                document.querySelector("#resultId").innerHTML = total;
+
+            });
+
+
+        // -------------------------
+        // -1 BUTTON
+        // -------------------------
+
+        document
+            .getElementById("minusOneBtn")
+            .addEventListener("click", function() {
+
+                total = total - 1;
+
+                document.querySelector("#resultId").innerHTML = total;
+
+            });
+
+
+        // -------------------------
+        // RESET BUTTON
+        // -------------------------
+
+        document
+            .getElementById("resetBtn")
+            .addEventListener("click", function() {
+
+                total = 0;
+
+                document.querySelector("#resultId").innerHTML = total;
+
+            });
+
+
+        // -------------------------
+        // +1 BUTTON
+        // -------------------------
+
+        document
+            .getElementById("plusOneBtn")
+            .addEventListener("click", function() {
+
+                total = total + 1;
+
+                document.querySelector("#resultId").innerHTML = total;
+
+            });
+
+
+        // -------------------------
+        // +2 BUTTON
+        // -------------------------
+
+        document
+            .getElementById("plusTwoBtn")
+            .addEventListener("click", function() {
+
+                total = total + 2;
+
+                document.querySelector("#resultId").innerHTML = total;
+
+            });
+
+    </script>
+
+
+</body>
+
+</html>
