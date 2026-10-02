@@ -1,98 +1,327 @@
+/* =========================================
+   PAGE
+   ========================================= */
+
 body {
     margin: 0;
     padding: 50px;
-    background-color: #eeeeee;
+
+    background-color: #080808;
+
     font-family: Arial, Helvetica, sans-serif;
-    color: #111111;
+
+    color: #eeeeee;
 }
+
+
+/* =========================================
+   TOP AREA
+   ========================================= */
 
 .top-area {
     display: flex;
+
     align-items: flex-start;
-    gap: 40px;
+
+    gap: 50px;
 }
 
+
+/* =========================================
+   DISPLAY AREA
+
+   Outer physical LCD housing
+   ========================================= */
+
 .display-area {
-    padding-top: 10px;
-    padding-left: 10px;
+    position: relative;
+
+    padding: 18px;
+
+    background-color: #181818;
+
+    border: 1px solid #333333;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.8);
 }
+
+
+/* =========================================
+   CANVAS
+
+   Actual 240 x 240 LCD
+   ========================================= */
 
 #screen {
     width: 480px;
     height: 480px;
-    display: block;
-    background-color: #cffb50;
-    border: 1px solid #999999;
 
-    /* perfect pixel scaling */
+    display: block;
+
+    background-color: #cffb50;
+
+    /*
+    Keep logical pixels sharp
+    when enlarged.
+    */
+
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+
+    /*
+    Physical LCD edge
+    */
+
+    border: 2px solid #050505;
+
+    box-shadow:
+        inset 0 0 14px rgba(0, 0, 0, 0.20),
+        inset 0 0 3px rgba(0, 0, 0, 0.55),
+        0 0 10px rgba(207, 251, 80, 0.10);
 }
 
+
+/* =========================================
+   LCD SCANLINES
+
+   Overlay only.
+   Does NOT change canvas pixels.
+   ========================================= */
+
+.display-area::after {
+    content: "";
+
+    position: absolute;
+
+    /*
+    Matches the canvas position inside
+    the 18px housing padding.
+    */
+
+    left: 20px;
+    top: 20px;
+
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+
+    pointer-events: none;
+
+
+    /*
+    Very subtle horizontal LCD texture
+    */
+
+    background:
+        repeating-linear-gradient(
+            to bottom,
+
+            rgba(0, 0, 0, 0.00) 0px,
+
+            rgba(0, 0, 0, 0.00) 3px,
+
+            rgba(0, 0, 0, 0.035) 4px
+        );
+
+
+    /*
+    Slight glass vignette
+    */
+
+    box-shadow:
+        inset 0 0 16px rgba(0, 0, 0, 0.16);
+
+
+    opacity: 0.8;
+}
+
+
+/* =========================================
+   LCD LIGHT REFLECTION
+
+   Small glass highlight
+   ========================================= */
+
+.display-area::before {
+    content: "";
+
+    position: absolute;
+
+    left: 22px;
+    top: 22px;
+
+    width: calc(100% - 44px);
+    height: 28%;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.07),
+            rgba(255, 255, 255, 0)
+        );
+
+    z-index: 2;
+}
+
+
+/* =========================================
+   SCALE PANEL
+   ========================================= */
+
 .scale-panel {
-    width: 180px;
+    width: 190px;
+
     display: flex;
+
     flex-direction: column;
+
     gap: 10px;
 }
 
+
 .scale-panel label {
-    font-weight: bold;
+    color: #eeeeee;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    letter-spacing: 0.04em;
 }
 
+
 .scale-panel input {
-    height: 36px;
-    padding-left: 10px;
+    height: 38px;
+
+    padding: 0 10px;
+
     box-sizing: border-box;
-    font-size: 16px;
+
+    background-color: #151515;
+
+    color: #ffffff;
+
+    border: 1px solid #3a3a3a;
+
+    border-radius: 5px;
+
+    font-size: 15px;
+
+    outline: none;
 }
+
+
+.scale-panel input:focus {
+    border-color: #777777;
+}
+
+
+/* =========================================
+   SCALE BUTTONS
+   ========================================= */
 
 .scale-buttons {
     display: flex;
-    gap: 10px;
+
+    gap: 8px;
 }
+
 
 .scale-buttons button {
     flex: 1;
-    height: 36px;
-    border: none;
-    background-color: #222222;
-    color: white;
+
+    height: 38px;
+
+    border: 1px solid #404040;
+
+    border-radius: 5px;
+
+    background-color: #202020;
+
+    color: #eeeeee;
+
     cursor: pointer;
 }
 
+
 .scale-buttons button:hover {
-    background-color: #444444;
+    background-color: #303030;
 }
+
+
+/* =========================================
+   CONTROL PANEL
+   ========================================= */
 
 .control-panel {
     width: 700px;
-    margin-top: 40px;
+
+    margin-top: 42px;
+
+    padding-top: 26px;
+
+    border-top: 1px solid #292929;
 }
 
+
+/* =========================================
+   CONTROL ROW
+   ========================================= */
+
 .control-row {
-    margin-bottom: 28px;
+    margin-bottom: 30px;
 }
+
 
 .control-row label {
     display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
+
+    margin-bottom: 10px;
+
+    color: #cfcfcf;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    letter-spacing: 0.04em;
 }
+
+
+/* =========================================
+   SLIDER LINE
+   ========================================= */
 
 .slider-line {
     display: flex;
+
     align-items: center;
-    gap: 16px;
+
+    gap: 18px;
 }
+
 
 .slider-line input[type="range"] {
     width: 600px;
+
+    accent-color: #cffb50;
 }
 
+
 .slider-line span {
-    width: 50px;
+    width: 52px;
+
+    color: #cffb50;
+
     text-align: right;
+
     font-family: monospace;
+
     font-size: 18px;
 }
