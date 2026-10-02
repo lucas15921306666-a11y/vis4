@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Week 3 In-Class Exercises</title>
+</head>
+
+<body>
+
+    <h1>Week 3 JavaScript Exercises</h1>
+
+    <p>Open the Chrome Console to see the results.</p>
+
+
+    <script>
+
+        // ============================================
+        // EXERCISE 1
+        // Manipulating Variables and Data Types
+        // ============================================
+
+        let name = "Lucas";
+        let age = 25;
+
+        let hobbies = [
+            "design",
+            "gaming",
+            "3D modeling"
+        ];
+
+        // Log the original variables
+        console.log("Exercise 1");
+        console.log("Name:", name);
+        console.log("Age:", age);
+        console.log("Hobbies:", hobbies);
+
+
+        // Add a new hobby to the end of the array
+        hobbies.push("coding");
+
+        console.log("After push:");
+        console.log(hobbies);
+
+
+        // Log one specific item in the array
+        // Remember: array index starts from 0
+        console.log("Hobby at index 1:");
+        console.log(hobbies[1]);
+
+
+        // Remove the last item in the array
+        hobbies.pop();
+
+        console.log("After pop:");
+        console.log(hobbies);
+
+
+        // Extract part of the array
+        // Start at index 0
+        // Stop BEFORE index 2
+        let selectedHobbies = hobbies.slice(0, 2);
+
+        console.log("Slice from index 0 to 2:");
+        console.log(selectedHobbies);
+
+
+        // Group name, age, and hobbies into one object
+        let person = {
+            name: name,
+            age: age,
+            hobbies: hobbies
+        };
+
+
+        // Add one year to the person's age
+        person.age = person.age + 1;
+
+        console.log("Person object:");
+        console.log(person);
+
+
+
+        // ============================================
+        // EXERCISE 2
+        // Creating and Using Functions
+        // ============================================
+
+        console.log("Exercise 2");
+
+
+        // Normal function
+        function calculateAgeInDays(age) {
+
+            return age * 365;
+
+        }
+
+
+        // Call the function with different ages
+        console.log(calculateAgeInDays(20));
+        console.log(calculateAgeInDays(25));
+        console.log(calculateAgeInDays(30));
+
+
+        // Arrow function version
+        const calculateAgeInDaysArrow = (age) => {
+
+            return age * 365;
+
+        };
+
+
+        console.log("Arrow function:");
+        console.log(calculateAgeInDaysArrow(20));
+        console.log(calculateAgeInDaysArrow(25));
+        console.log(calculateAgeInDaysArrow(30));
+
+
+
+        // ============================================
+        // EXERCISE 3
+        // Demonstrating Scope
+        // ============================================
+
+        console.log("Exercise 3");
+
+
+        // Global variable
+        // This variable can be accessed outside
+        // and inside functions
+        let globalVar = "I am global";
+
+
+        function testScope() {
+
+            // Local variable
+            // This variable only exists inside this function
+            let localVar = "I am local";
+
+
+            console.log(globalVar);
+
+            console.log(localVar);
+
+        }
+
+
+        // Run the function
+        testScope();
+
+
+        // IMPORTANT:
+        // If you remove the // below,
+        // JavaScript will show an error because
+        // localVar does not exist outside testScope()
+
+        // console.log(localVar);
+
+
+
+        // ============================================
+        // EXERCISE 4
+        // Loops and Conditional Statements
+        // ============================================
+
+        console.log("Exercise 4");
+
+
+        let numbers = [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+        ];
+
+
+        // Start i at 0
+        // Keep looping while i is smaller than numbers.length
+        // Add 1 to i after each loop
+
+        for (let i = 0; i < numbers.length; i++) {
+
+
+            // numbers[i] means:
+            // get the number at the current array index
+
+
+            // % means remainder
+            // If a number divided by 2 has remainder 0,
+            // it is an even number
+
+            if (numbers[i] % 2 === 0) {
+
+                console.log(numbers[i] + " is even");
+
+            } else {
+
+                console.log(numbers[i] + " is odd");
+
+            }
+
+        }
+
+
+    </script>
+
+</body>
+
+</html>

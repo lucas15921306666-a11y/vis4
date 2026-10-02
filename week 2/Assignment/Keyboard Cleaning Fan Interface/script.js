@@ -522,9 +522,9 @@ resetScaleBtn.addEventListener(
 
     function() {
 
-        scaleInput.value = 2;
+        scaleInput.value = 1;
 
-        applyScale(2);
+        applyScale(1);
 
     }
 

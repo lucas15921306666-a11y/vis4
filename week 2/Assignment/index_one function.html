@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Lucas's Number Adder</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+
+<body>
+
+    <!-- HEADER -->
+    <div id="header">
+
+        <h1>Lucas's Number Adder</h1>
+
+        <h4>Item 1</h4>
+        <h4>Item 2</h4>
+        <h4>Item 3</h4>
+
+    </div>
+
+
+    <!-- PAGE CONTENT -->
+    <div id="page-content">
+
+
+        <!-- SIDEBAR -->
+        <div id="sidebar">
+
+            <h3>Result</h3>
+
+            <p id="resultId">0</p>
+
+        </div>
+
+
+        <!-- MAIN CONTENT -->
+        <div id="main-content">
+
+            <h3>Control Center</h3>
+
+
+            <div id="button-container">
+
+                <button id="minusTwoBtn">-2</button>
+
+                <button id="minusOneBtn">-1</button>
+
+                <button id="resetBtn">Reset</button>
+
+                <button id="plusOneBtn">+1</button>
+
+                <button id="plusTwoBtn">+2</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+    <script>
+
+        // Create a variable called total
+        // Starting value is 0
+        let total = 0;
+
+
+        // This function updates the number shown on the page
+        function updateResults() {
+
+            document.querySelector("#resultId").innerHTML = total;
+
+        }
+
+
+        // -2 BUTTON
+        document
+            .getElementById("minusTwoBtn")
+            .addEventListener("click", function() {
+
+                total = total - 2;
+
+                updateResults();
+
+            });
+
+
+        // -1 BUTTON
+        document
+            .getElementById("minusOneBtn")
+            .addEventListener("click", function() {
+
+                total = total - 1;
+
+                updateResults();
+
+            });
+
+
+        // RESET BUTTON
+        document
+            .getElementById("resetBtn")
+            .addEventListener("click", function() {
+
+                total = 0;
+
+                updateResults();
+
+            });
+
+
+        // +1 BUTTON
+        document
+            .getElementById("plusOneBtn")
+            .addEventListener("click", function() {
+
+                total = total + 1;
+
+                updateResults();
+
+            });
+
+
+        // +2 BUTTON
+        document
+            .getElementById("plusTwoBtn")
+            .addEventListener("click", function() {
+
+                total = total + 2;
+
+                updateResults();
+
+            });
+
+    </script>
+
+
+</body>
+
+</html>
