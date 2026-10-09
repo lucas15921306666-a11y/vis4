@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Keyboard Cleaning Fan
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="styles.css"
+    >
+
+</head>
+
+
+<body>
+
+    <div class="page">
+
+
+        <!-- =================================================
+             DISPLAY
+             ================================================= -->
+
+        <section class="display-section">
+
+            <h1>
+                Keyboard Cleaning Fan
+            </h1>
+
+
+            <div class="display-area">
+
+                <canvas
+                    id="screen"
+                    width="240"
+                    height="240"
+                ></canvas>
+
+            </div>
+
+
+            <!-- =============================================
+                 SCALE
+                 ============================================= -->
+
+            <div class="scale-controls">
+
+                <label for="scaleInput">
+                    Display Scale
+                </label>
+
+
+                <input
+                    id="scaleInput"
+                    type="number"
+                    min="1"
+                    max="10"
+                    step="1"
+                    value="1"
+                >
+
+
+                <button id="applyScale">
+                    Apply
+                </button>
+
+
+                <button id="resetScale">
+                    Reset
+                </button>
+
+            </div>
+
+
+            <!-- =============================================
+                 CONNECTION SETUP
+                 ============================================= -->
+
+            <div class="connection-panel">
+
+                <div class="connection-title">
+                    SETUP
+                </div>
+
+
+                <!-- CONTROLLER -->
+
+                <div class="connection-block">
+
+                    <div class="connection-row">
+
+                        <span class="connection-name">
+                            PS5 CONTROLLER
+                        </span>
+
+
+                        <span
+                            id="controllerConnectionStatus"
+                            class="connection-status waiting"
+                        >
+                            WAITING
+                        </span>
+
+                    </div>
+
+
+                    <p class="connection-description">
+
+                        Connect a PS5 DualSense controller
+                        and press any button.
+
+                    </p>
+
+                </div>
+
+
+                <!-- HAPTIC BRIDGE -->
+
+                <div class="connection-block">
+
+                    <div class="connection-row">
+
+                        <span class="connection-name">
+                            HAPTIC BRIDGE
+                        </span>
+
+
+                        <span
+                            id="bridgeConnectionStatus"
+                            class="connection-status disconnected"
+                        >
+                            NOT CONNECTED
+                        </span>
+
+                    </div>
+
+
+                    <p class="connection-description">
+
+                        For controller vibration,
+                        run KeyboardFanController.exe.
+
+                    </p>
+
+
+                    <a
+                        class="bridge-download"
+                        href="./KeyboardFanController.exe"
+                        download
+                    >
+                        Download Haptic Bridge
+                    </a>
+
+
+                    <div class="connection-path">
+
+                        Keyboard Cleaning Fan Interface/
+                        KeyboardFanController.exe
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 CONTROLLER GUIDE
+                 ============================================= -->
+
+            <div class="control-guide">
+
+                <div class="guide-title">
+                    CONTROLLER
+                </div>
+
+
+                <div class="guide-row">
+
+                    <span class="guide-key">
+                        R2
+                    </span>
+
+                    <span>
+                        Fan Speed
+                    </span>
+
+                </div>
+
+
+                <div class="guide-row">
+
+                    <span class="guide-key">
+                        ↑ / ↓
+                    </span>
+
+                    <span>
+                        Fan Opening
+                    </span>
+
+                </div>
+
+
+                <div class="guide-row">
+
+                    <span class="guide-key">
+                        △
+                    </span>
+
+                    <span>
+                        Charging On / Off
+                    </span>
+
+                </div>
+
+
+                <div class="guide-note">
+
+                    Hold ↑ / ↓ to adjust continuously.
+                    Display updates when released.
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             CONTROLS
+             ================================================= -->
+
+        <section class="controls">
+
+
+            <!-- =============================================
+                 BATTERY
+                 ============================================= -->
+
+            <div class="control-row">
+
+                <div class="control-header">
+
+                    <label for="batterySlider">
+                        Battery
+                    </label>
+
+
+                    <div class="value-group">
+
+                        <span id="batteryText">
+                            99
+                        </span>
+
+                        <span>
+                            %
+                        </span>
+
+
+                        <button
+                            id="resetBatteryBtn"
+                            class="battery-reset"
+                        >
+                            Reset to 99%
+                        </button>
+
+
+                        <!-- CHARGING SWITCH -->
+
+                        <label class="charging-control">
+
+                            <span class="charging-label">
+                                Charging
+                            </span>
+
+
+                            <input
+                                id="chargingToggle"
+                                type="checkbox"
+                            >
+
+
+                            <span class="toggle-switch">
+
+                                <span class="toggle-knob"></span>
+
+                            </span>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <input
+                    id="batterySlider"
+                    type="range"
+                    min="0"
+                    max="99"
+                    step="1"
+                    value="99"
+                >
+
+            </div>
+
+
+
+            <!-- =============================================
+                 FAN SPEED
+                 ============================================= -->
+
+            <div class="control-row">
+
+                <div class="control-header">
+
+                    <label for="speedSlider">
+                        Fan Speed
+                    </label>
+
+
+                    <span id="speedText">
+                        0
+                    </span>
+
+                </div>
+
+
+                <input
+                    id="speedSlider"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="0"
+                >
+
+            </div>
+
+
+
+            <!-- =============================================
+                 FAN OPENING
+                 ============================================= -->
+
+            <div class="control-row">
+
+                <div class="control-header">
+
+                    <label for="openingSlider">
+                        Fan Opening
+                    </label>
+
+
+                    <span>
+
+                        <span id="openingText">
+                            01
+                        </span>
+
+                        °
+
+                    </span>
+
+                </div>
+
+
+                <input
+                    id="openingSlider"
+                    type="range"
+                    min="1"
+                    max="90"
+                    step="1"
+                    value="1"
+                >
+
+            </div>
+
+
+        </section>
+
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
