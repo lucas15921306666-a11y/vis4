@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 
 function ConnectionRow({ label, connected, disconnectedLabel = "NOT CONNECTED" }) {

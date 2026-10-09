@@ -1,51 +1,94 @@
+
 import { useEffect, useRef, useState } from "react";
 
 const BRIDGE_URL = "ws://127.0.0.1:8765";
+const RETRY_MS = 2000;
 
 export function useHapticBridge(speed) {
   const [connected, setConnected] = useState(false);
+
   const socketRef = useRef(null);
-  const speedRef = useRef(speed);
-  speedRef.current = speed;
+  const latestSpeed = useRef(speed);
+
+  latestSpeed.current = speed;
 
   useEffect(() => {
     let disposed = false;
-    let retry;
+    let retryTimer = null;
+
     function connect() {
       if (disposed) return;
-      let socket;
-      try { socket = new WebSocket(BRIDGE_URL); }
-      catch { retry = setTimeout(connect, 2000); return; }
+
+      const socket = new WebSocket(BRIDGE_URL);
       socketRef.current = socket;
+
       socket.onopen = () => {
-        if (disposed) return;
+        if (disposed || socketRef.current !== socket) return;
+
         setConnected(true);
-        socket.send(JSON.stringify({ type: "fanSpeed", value: speedRef.current }));
+
+        socket.send(
+          JSON.stringify({
+            type: "fanSpeed",
+            value: latestSpeed.current,
+          })
+        );
       };
+
       socket.onclose = () => {
-        if (disposed) return;
+        if (disposed || socketRef.current !== socket) return;
+
+        socketRef.current = null;
         setConnected(false);
-        retry = setTimeout(connect, 2000);
+
+        retryTimer = window.setTimeout(connect, RETRY_MS);
       };
-      socket.onerror = () => {}; // onclose handles reconnect
+
+      socket.onerror = () => {};
     }
+
     connect();
+
     return () => {
       disposed = true;
-      clearTimeout(retry);
+      window.clearTimeout(retryTimer);
+
       const socket = socketRef.current;
+      socketRef.current = null;
+
       if (socket?.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "stop" }));
+        socket.close();
+      } else if (
+        socket?.readyState === WebSocket.CONNECTING
+      ) {
+        // Avoid closing a WebSocket during its handshake.
+        socket.addEventListener(
+          "open",
+          () => socket.close(),
+          { once: true }
+        );
+        socket.addEventListener(
+          "error",
+          () => socket.close(),
+          { once: true }
+        );
+      } else {
+        socket?.close();
       }
-      socket?.close();
-      socketRef.current = null;
     };
   }, []);
 
   useEffect(() => {
     const socket = socketRef.current;
+
     if (socket?.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: "fanSpeed", value: speed }));
+      socket.send(
+        JSON.stringify({
+          type: "fanSpeed",
+          value: speed,
+        })
+      );
     }
   }, [speed]);
 

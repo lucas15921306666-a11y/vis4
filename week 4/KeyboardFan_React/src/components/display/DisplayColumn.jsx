@@ -1,3 +1,4 @@
+import React from "react";
 import LCDCanvas from "./LCDCanvas.jsx";
 import ScaleControls from "./ScaleControls.jsx";
 import SetupPanel from "../panels/SetupPanel.jsx";

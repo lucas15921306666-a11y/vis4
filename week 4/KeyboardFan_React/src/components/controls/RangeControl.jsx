@@ -1,3 +1,4 @@
+import React from "react";
 export default function RangeControl({ id, label, value, display, min, max, onChange, children }) {
   return (
     <div className="control-row">

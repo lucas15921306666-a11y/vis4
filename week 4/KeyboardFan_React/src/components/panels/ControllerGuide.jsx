@@ -1,3 +1,4 @@
+import React from "react";
 const guide = [
   ["R2", "Fan Speed"],
   ["↑ / ↓", "Fan Opening"],

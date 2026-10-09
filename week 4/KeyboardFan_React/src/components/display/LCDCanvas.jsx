@@ -1,3 +1,4 @@
+import React from "react";
 import { useCanvasDisplay } from "../../hooks/useCanvasDisplay.js";
 
 export default function LCDCanvas({ battery, displayOpening, speed, charging, scale }) {

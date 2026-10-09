@@ -1,3 +1,4 @@
+import React from "react";
 import RangeControl from "./RangeControl.jsx";
 import { pad2 } from "../../utils/format.js";
 
