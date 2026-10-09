@@ -1,0 +1,68 @@
+
+/* ==============================
+   APP.CSS — GLOBAL STYLES
+   ============================== */
+
+/* Import component styles */
+
+@import "./Header.css";
+@import "./Sidebar.css";
+@import "./MainContent.css";
+
+/* Global colors */
+
+:root {
+  --lime: #CFFB50;
+  --black: #111410;
+  --dark: #20251D;
+  --panel: #30362D;
+  --gray: #879181;
+  --white: #F3F5ED;
+}
+
+/* Reset */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+
+  background: var(--black);
+  color: var(--white);
+
+  font-family: "Consolas", "Courier New", monospace;
+}
+
+/* Root */
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Global buttons */
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Main page layout */
+
+#main-content {
+  display: flex;
+  width: 100%;
+  min-height: calc(100vh - 140px);
+  background: var(--black);
+}
+
+/* Responsive page layout */
+
+@media (max-width: 700px) {
+  #main-content {
+    flex-direction: column;
+  }
+}

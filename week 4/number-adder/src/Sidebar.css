@@ -1,0 +1,126 @@
+/* ==============================
+   SIDEBAR / 3D FLOWING SURFACE
+   ============================== */
+
+.sidebar {
+  position: relative;
+  isolation: isolate;
+
+  width: 26%;
+  min-height: calc(100vh - 140px);
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  background: var(--lime);
+  color: var(--black);
+}
+
+/* 3D animation layer */
+
+.sidebarCanvas {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: block;
+  z-index: 0;
+
+  pointer-events: none;
+}
+
+/* Foreground content */
+
+.sidebarContent {
+  position: relative;
+  z-index: 1;
+
+  padding: 28px 24px;
+  pointer-events: none;
+}
+
+/* Headings */
+
+.sidebar h3 {
+  margin: 0 0 12px;
+
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Result number */
+
+#resultId {
+  margin: 0;
+
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -3px;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* Result status */
+
+.resultStatus {
+  margin: 10px 0 36px;
+
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+/* History */
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+
+.sidebar li {
+  padding: 10px 0;
+
+  border-bottom: 1px solid rgba(17, 20, 16, 0.28);
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Small system label */
+
+.sidebarFooter {
+  position: absolute;
+  bottom: 18px;
+  left: 24px;
+
+  z-index: 1;
+
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
+
+  pointer-events: none;
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+  .sidebar {
+    width: 100%;
+    min-height: 400px;
+  }
+
+  .sidebarContent {
+    padding: 24px 20px;
+  }
+
+  .sidebarFooter {
+    left: 20px;
+  }
+}
