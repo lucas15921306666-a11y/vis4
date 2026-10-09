@@ -1,13 +1,17 @@
 /* =========================================================
    CANVAS
-   Logical resolution is ALWAYS 240 x 240
    ========================================================= */
 
-const canvas = document.getElementById("screen");
+const canvas =
+    document.getElementById("screen");
 
-const ctx = canvas.getContext("2d");
+const ctx =
+    canvas.getContext("2d");
 
 ctx.imageSmoothingEnabled = false;
+
+canvas.style.imageRendering =
+    "pixelated";
 
 
 /* =========================================================
@@ -44,8 +48,30 @@ const openingText =
     document.getElementById("openingText");
 
 
+const resetBatteryBtn =
+    document.getElementById("resetBatteryBtn");
+
+const chargingToggle =
+    document.getElementById("chargingToggle");
+
+
 /* =========================================================
-   ASSET PATHS
+   CONNECTION UI
+   ========================================================= */
+
+const controllerConnectionStatus =
+    document.getElementById(
+        "controllerConnectionStatus"
+    );
+
+const bridgeConnectionStatus =
+    document.getElementById(
+        "bridgeConnectionStatus"
+    );
+
+
+/* =========================================================
+   ASSETS
    ========================================================= */
 
 const ASSETS = {
@@ -77,7 +103,7 @@ const ASSETS = {
 
 
 /* =========================================================
-   LOADED IMAGES
+   IMAGES
    ========================================================= */
 
 const images = {
@@ -96,66 +122,592 @@ const images = {
 
 
 /* =========================================================
-   STATIC 240 x 240 FRAME BUFFER
+   STATIC CANVAS
    ========================================================= */
 
 const staticCanvas =
-    document.createElement("canvas");
+    document.createElement(
+        "canvas"
+    );
 
 staticCanvas.width = 240;
 staticCanvas.height = 240;
 
 
 const staticCtx =
-    staticCanvas.getContext("2d");
+    staticCanvas.getContext(
+        "2d"
+    );
 
-staticCtx.imageSmoothingEnabled = false;
+staticCtx.imageSmoothingEnabled =
+    false;
 
 
 /* =========================================================
-   DEGREE TARGET BUFFER
-   40 x 40
+   DEGREE BUFFER
    ========================================================= */
 
 const degreeCanvas =
-    document.createElement("canvas");
+    document.createElement(
+        "canvas"
+    );
 
 degreeCanvas.width = 40;
 degreeCanvas.height = 40;
 
 
 const degreeCtx =
-    degreeCanvas.getContext("2d");
+    degreeCanvas.getContext(
+        "2d"
+    );
 
-degreeCtx.imageSmoothingEnabled = false;
+degreeCtx.imageSmoothingEnabled =
+    false;
 
 
 /* =========================================================
-   BATTERY NUMBER TARGET BUFFER
-   170 x 140
+   BATTERY BUFFER
    ========================================================= */
 
 const batteryCanvas =
-    document.createElement("canvas");
+    document.createElement(
+        "canvas"
+    );
 
 batteryCanvas.width = 170;
 batteryCanvas.height = 140;
 
 
 const batteryCtx =
-    batteryCanvas.getContext("2d");
+    batteryCanvas.getContext(
+        "2d"
+    );
 
-batteryCtx.imageSmoothingEnabled = false;
+batteryCtx.imageSmoothingEnabled =
+    false;
 
 
 /* =========================================================
-   EXACT SCREEN COORDINATES
+   STATUS
    ========================================================= */
 
+const STATUS_X = 10;
+const STATUS_Y = 10;
 
-/* -------------------------
+const STATUS_W = 220;
+const STATUS_H = 10;
+
+
+const LOW_BATTERY_THRESHOLD =
+    20;
+
+
+let lastStatusText =
+    "";
+
+
+/* =========================================================
+   PIXEL FONT 5 x 7
+   ========================================================= */
+
+const PIXEL_FONT = {
+
+    "A": [
+        "01110",
+        "10001",
+        "10001",
+        "11111",
+        "10001",
+        "10001",
+        "10001"
+    ],
+
+    "B": [
+        "11110",
+        "10001",
+        "10001",
+        "11110",
+        "10001",
+        "10001",
+        "11110"
+    ],
+
+    "C": [
+        "01111",
+        "10000",
+        "10000",
+        "10000",
+        "10000",
+        "10000",
+        "01111"
+    ],
+
+    "D": [
+        "11110",
+        "10001",
+        "10001",
+        "10001",
+        "10001",
+        "10001",
+        "11110"
+    ],
+
+    "E": [
+        "11111",
+        "10000",
+        "10000",
+        "11110",
+        "10000",
+        "10000",
+        "11111"
+    ],
+
+    "F": [
+        "11111",
+        "10000",
+        "10000",
+        "11110",
+        "10000",
+        "10000",
+        "10000"
+    ],
+
+    "G": [
+        "01111",
+        "10000",
+        "10000",
+        "10111",
+        "10001",
+        "10001",
+        "01111"
+    ],
+
+    "H": [
+        "10001",
+        "10001",
+        "10001",
+        "11111",
+        "10001",
+        "10001",
+        "10001"
+    ],
+
+    "I": [
+        "11111",
+        "00100",
+        "00100",
+        "00100",
+        "00100",
+        "00100",
+        "11111"
+    ],
+
+    "J": [
+        "00111",
+        "00010",
+        "00010",
+        "00010",
+        "00010",
+        "10010",
+        "01100"
+    ],
+
+    "K": [
+        "10001",
+        "10010",
+        "10100",
+        "11000",
+        "10100",
+        "10010",
+        "10001"
+    ],
+
+    "L": [
+        "10000",
+        "10000",
+        "10000",
+        "10000",
+        "10000",
+        "10000",
+        "11111"
+    ],
+
+    "M": [
+        "10001",
+        "11011",
+        "10101",
+        "10101",
+        "10001",
+        "10001",
+        "10001"
+    ],
+
+    "N": [
+        "10001",
+        "11001",
+        "11001",
+        "10101",
+        "10011",
+        "10011",
+        "10001"
+    ],
+
+    "O": [
+        "01110",
+        "10001",
+        "10001",
+        "10001",
+        "10001",
+        "10001",
+        "01110"
+    ],
+
+    "P": [
+        "11110",
+        "10001",
+        "10001",
+        "11110",
+        "10000",
+        "10000",
+        "10000"
+    ],
+
+    "Q": [
+        "01110",
+        "10001",
+        "10001",
+        "10001",
+        "10101",
+        "10010",
+        "01101"
+    ],
+
+    "R": [
+        "11110",
+        "10001",
+        "10001",
+        "11110",
+        "10100",
+        "10010",
+        "10001"
+    ],
+
+    "S": [
+        "01111",
+        "10000",
+        "10000",
+        "01110",
+        "00001",
+        "00001",
+        "11110"
+    ],
+
+    "T": [
+        "11111",
+        "00100",
+        "00100",
+        "00100",
+        "00100",
+        "00100",
+        "00100"
+    ],
+
+    "U": [
+        "10001",
+        "10001",
+        "10001",
+        "10001",
+        "10001",
+        "10001",
+        "01110"
+    ],
+
+    "V": [
+        "10001",
+        "10001",
+        "10001",
+        "10001",
+        "10001",
+        "01010",
+        "00100"
+    ],
+
+    "W": [
+        "10001",
+        "10001",
+        "10001",
+        "10101",
+        "10101",
+        "10101",
+        "01010"
+    ],
+
+    "X": [
+        "10001",
+        "10001",
+        "01010",
+        "00100",
+        "01010",
+        "10001",
+        "10001"
+    ],
+
+    "Y": [
+        "10001",
+        "10001",
+        "01010",
+        "00100",
+        "00100",
+        "00100",
+        "00100"
+    ],
+
+    "Z": [
+        "11111",
+        "00001",
+        "00010",
+        "00100",
+        "01000",
+        "10000",
+        "11111"
+    ],
+
+    "0": [
+        "01110",
+        "10001",
+        "10011",
+        "10101",
+        "11001",
+        "10001",
+        "01110"
+    ],
+
+    "1": [
+        "00100",
+        "01100",
+        "00100",
+        "00100",
+        "00100",
+        "00100",
+        "01110"
+    ],
+
+    "2": [
+        "01110",
+        "10001",
+        "00001",
+        "00010",
+        "00100",
+        "01000",
+        "11111"
+    ],
+
+    "3": [
+        "11110",
+        "00001",
+        "00001",
+        "01110",
+        "00001",
+        "00001",
+        "11110"
+    ],
+
+    "4": [
+        "00010",
+        "00110",
+        "01010",
+        "10010",
+        "11111",
+        "00010",
+        "00010"
+    ],
+
+    "5": [
+        "11111",
+        "10000",
+        "10000",
+        "11110",
+        "00001",
+        "00001",
+        "11110"
+    ],
+
+    "6": [
+        "01110",
+        "10000",
+        "10000",
+        "11110",
+        "10001",
+        "10001",
+        "01110"
+    ],
+
+    "7": [
+        "11111",
+        "00001",
+        "00010",
+        "00100",
+        "01000",
+        "01000",
+        "01000"
+    ],
+
+    "8": [
+        "01110",
+        "10001",
+        "10001",
+        "01110",
+        "10001",
+        "10001",
+        "01110"
+    ],
+
+    "9": [
+        "01110",
+        "10001",
+        "10001",
+        "01111",
+        "00001",
+        "00001",
+        "01110"
+    ],
+
+    ":": [
+        "00000",
+        "00100",
+        "00100",
+        "00000",
+        "00100",
+        "00100",
+        "00000"
+    ],
+
+    "/": [
+        "00001",
+        "00010",
+        "00010",
+        "00100",
+        "01000",
+        "01000",
+        "10000"
+    ],
+
+    "-": [
+        "00000",
+        "00000",
+        "00000",
+        "11111",
+        "00000",
+        "00000",
+        "00000"
+    ],
+
+    " ": [
+        "00000",
+        "00000",
+        "00000",
+        "00000",
+        "00000",
+        "00000",
+        "00000"
+    ]
+
+};
+
+
+/* =========================================================
+   DRAW PIXEL TEXT
+   ========================================================= */
+
+function drawPixelText(
+    text,
+    x,
+    y
+) {
+
+    const CHARACTER_WIDTH =
+        5;
+
+    const CHARACTER_GAP =
+        1;
+
+
+    ctx.fillStyle =
+        "black";
+
+
+    let cursorX =
+        x;
+
+
+    const upperText =
+        text.toUpperCase();
+
+
+    for (
+        const character of upperText
+    ) {
+
+        const glyph =
+
+            PIXEL_FONT[
+                character
+            ]
+            ||
+            PIXEL_FONT[" "];
+
+
+        for (
+            let row = 0;
+            row < 7;
+            row++
+        ) {
+
+            for (
+                let column = 0;
+                column < 5;
+                column++
+            ) {
+
+                if (
+                    glyph[row][column]
+                    ===
+                    "1"
+                ) {
+
+                    ctx.fillRect(
+
+                        cursorX +
+                        column,
+
+                        y +
+                        row,
+
+                        1,
+                        1
+
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        cursorX +=
+
+            CHARACTER_WIDTH +
+            CHARACTER_GAP;
+
+    }
+
+}
+
+
+/* =========================================================
    DEGREE
-   ------------------------- */
+   ========================================================= */
 
 const DEGREE_X = 10;
 const DEGREE_Y = 65;
@@ -164,16 +716,6 @@ const DEGREE_W = 40;
 const DEGREE_H = 40;
 
 
-/*
-Inside the Degree 40x40 frame:
-
-left digit:
-13,30
-
-right digit:
-21,30
-*/
-
 const DEGREE_DIGIT_1_X = 13;
 const DEGREE_DIGIT_1_Y = 30;
 
@@ -181,15 +723,16 @@ const DEGREE_DIGIT_2_X = 21;
 const DEGREE_DIGIT_2_Y = 30;
 
 
-/* -------------------------
+/* =========================================================
    FAN
-   ------------------------- */
+   ========================================================= */
 
 const FAN_X = 10;
 const FAN_Y = 135;
 
 const FAN_W = 40;
 const FAN_H = 40;
+
 
 const FAN_CENTER_X =
     FAN_X + 20;
@@ -198,16 +741,17 @@ const FAN_CENTER_Y =
     FAN_Y + 20;
 
 
-/* -------------------------
+let fanAngle =
+    0;
+
+
+const FAN_MAX_RPS =
+    2;
+
+
+/* =========================================================
    BATTERY NUMBER
-
-   Original:
-   59,45
-
-   requested:
-   +1 px right
-   +10 px down
-   ------------------------- */
+   ========================================================= */
 
 const BATTERY_X = 60;
 const BATTERY_Y = 55;
@@ -216,23 +760,16 @@ const BATTERY_W = 170;
 const BATTERY_H = 140;
 
 
-/*
-Within the battery buffer:
+const BATTERY_DIGIT_1_X =
+    0;
 
-First digit:
-x = 0
-
-Second digit:
-x = 90
-*/
-
-const BATTERY_DIGIT_1_X = 0;
-const BATTERY_DIGIT_2_X = 90;
+const BATTERY_DIGIT_2_X =
+    90;
 
 
-/* -------------------------
+/* =========================================================
    BATTERY BAR
-   ------------------------- */
+   ========================================================= */
 
 const BATTERY_BAR_X = 59;
 const BATTERY_BAR_Y = 215;
@@ -241,169 +778,397 @@ const BATTERY_BAR_W = 171;
 const BATTERY_BAR_H = 8;
 
 
+const LCD_COLOR =
+    "#CFFB50";
+
+
+const CHARGE_PLUS_LEAD =
+    5;
+
+
+const CHARGE_PLUS_BOUNCE_TIME =
+    220;
+
+
 /* =========================================================
    DIGIT SPRITES
    ========================================================= */
 
+const BIG_DIGIT_CELL =
+    90;
 
-/* -------------------------
-   LARGE BATTERY DIGITS
+const BIG_DIGIT_W =
+    80;
 
-   SVG:
-   0 1 2 3 4 5 6 7 8 9
-
-   each digit = 80x140
-   cell step = 90px
-   ------------------------- */
-
-const BIG_DIGIT_CELL = 90;
-
-const BIG_DIGIT_W = 80;
-const BIG_DIGIT_H = 140;
+const BIG_DIGIT_H =
+    140;
 
 
-/* -------------------------
-   SMALL DEGREE DIGITS
+const SMALL_DIGIT_CELL =
+    8;
 
-   SVG:
-   0 1 2 3 4 5 6 7 8 9
+const SMALL_DIGIT_W =
+    6;
 
-   each digit = 6x10
-   cell step = 8px
-   ------------------------- */
-
-const SMALL_DIGIT_CELL = 8;
-
-const SMALL_DIGIT_W = 6;
-const SMALL_DIGIT_H = 10;
+const SMALL_DIGIT_H =
+    10;
 
 
 /* =========================================================
-   REFRESH SETTINGS
+   DEGREE REFRESH
    ========================================================= */
 
+const DEGREE_REFRESH_TIME =
+    250;
 
-/* ---------------------------------------------------------
-   DEGREE
-
-   40 x 40
-   1 x 1 pixels
-
-   1600 pixels total
-
-   full refresh = 250ms
-   --------------------------------------------------------- */
-
-const DEGREE_REFRESH_TIME = 250;
 
 const DEGREE_TOTAL_PIXELS =
-    DEGREE_W * DEGREE_H;       // 1600
+
+    DEGREE_W *
+    DEGREE_H;
 
 
 const DEGREE_PIXEL_TIME =
+
     DEGREE_REFRESH_TIME /
     DEGREE_TOTAL_PIXELS;
 
 
-/*
-Current pixel index:
-
-0 -> first pixel
-1599 -> last pixel
-*/
-
-let degreePixelIndex = 0;
-
-let degreeTimeAccumulator = 0;
+let degreePixelIndex =
+    0;
 
 
-/* ---------------------------------------------------------
-   BATTERY
+let degreeTimeAccumulator =
+    0;
 
-   each digit:
-   80 x 140
 
-   voxel:
-   10 x 10
+let degreeNeedsCommit =
+    false;
 
-   8 columns x 14 rows
-   = 112 tiles per digit
 
-   2 digits
-   = 224 tiles
+/* =========================================================
+   BATTERY LCD REFRESH
+   ========================================================= */
 
-   full refresh = 1000ms
-   --------------------------------------------------------- */
+const BATTERY_TILE_SIZE =
+    10;
 
-const BATTERY_TILE_SIZE = 10;
 
-const BATTERY_TILE_COLUMNS = 8;
-const BATTERY_TILE_ROWS = 14;
+const BATTERY_TILE_COLUMNS =
+    8;
+
+
+const BATTERY_TILE_ROWS =
+    14;
+
 
 const BATTERY_TILES_PER_DIGIT =
+
     BATTERY_TILE_COLUMNS *
     BATTERY_TILE_ROWS;
 
 
 const BATTERY_TOTAL_TILES =
-    BATTERY_TILES_PER_DIGIT * 2;
-// 224
+
+    BATTERY_TILES_PER_DIGIT *
+    2;
 
 
-const BATTERY_REFRESH_TIME = 1000;
+const BATTERY_REFRESH_TIME =
+    1000;
 
 
 const BATTERY_TILE_TIME =
+
     BATTERY_REFRESH_TIME /
     BATTERY_TOTAL_TILES;
 
 
-let batteryTileIndex = 0;
+let batteryTileIndex =
+    0;
 
-let batteryTimeAccumulator = 0;
+
+let batteryTimeAccumulator =
+    0;
 
 
 /* =========================================================
-   FAN
+   BATTERY / CHARGING
    ========================================================= */
 
+let batteryLevel =
+    99;
+
+
+let lastDisplayedBattery =
+    99;
+
 
 /*
-Current angle in radians
+Maximum speed:
+
+-1% every 2 seconds
 */
 
-let fanAngle = 0;
+const BATTERY_DRAIN_AT_MAX_SPEED =
+    0.5;
 
 
 /*
-At speed = 100
+Charging:
 
-fan rotates at this many
-full revolutions per second.
-
-Change this number later
-if you want faster/slower animation.
++1% every 2 seconds
 */
 
-const FAN_MAX_RPS = 2;
+const BATTERY_CHARGE_PER_SECOND =
+    0.5;
+
+
+/* =========================================================
+   GAMEPAD
+   ========================================================= */
+
+let activeGamepadIndex =
+    null;
+
+
+/*
+Standard mapping:
+
+Triangle = 3
+R2       = 7
+D-pad Up = 12
+D-pad Down = 13
+*/
+
+const TRIANGLE_BUTTON_INDEX =
+    3;
+
+
+const R2_BUTTON_INDEX =
+    7;
+
+
+const DPAD_UP_INDEX =
+    12;
+
+
+const DPAD_DOWN_INDEX =
+    13;
+
+
+const R2_DEADZONE =
+    0.02;
+
+
+let triangleWasPressed =
+    false;
+
+
+/* =========================================================
+   D-PAD
+   ========================================================= */
+
+const DPAD_REPEAT_DELAY =
+    350;
+
+
+const DPAD_REPEAT_INTERVAL =
+    80;
+
+
+let dpadUpWasPressed =
+    false;
+
+
+let dpadUpPressTime =
+    0;
+
+
+let dpadUpLastRepeatTime =
+    0;
+
+
+let dpadDownWasPressed =
+    false;
+
+
+let dpadDownPressTime =
+    0;
+
+
+let dpadDownLastRepeatTime =
+    0;
+
+
+/* =========================================================
+   PYTHON / EXE BRIDGE
+   ========================================================= */
+
+let controllerSocket =
+    null;
+
+
+let reconnectTimer =
+    null;
+
+
+let lastSentFanSpeed =
+    -1;
 
 
 /* =========================================================
    TIME
    ========================================================= */
 
-let previousTime = 0;
+let previousTime =
+    0;
 
 
 /* =========================================================
-   IMAGE LOADING
+   CONNECTION UI
+   ========================================================= */
+
+function setControllerConnectionUI(
+    connected
+) {
+
+    if (
+        !controllerConnectionStatus
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        connected
+    ) {
+
+        controllerConnectionStatus.textContent =
+            "CONNECTED";
+
+
+        controllerConnectionStatus.className =
+            "connection-status connected";
+
+    }
+
+    else {
+
+        controllerConnectionStatus.textContent =
+            "WAITING";
+
+
+        controllerConnectionStatus.className =
+            "connection-status waiting";
+
+    }
+
+}
+
+
+function setBridgeConnectionUI(
+    connected
+) {
+
+    if (
+        !bridgeConnectionStatus
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        connected
+    ) {
+
+        bridgeConnectionStatus.textContent =
+            "CONNECTED";
+
+
+        bridgeConnectionStatus.className =
+            "connection-status connected";
+
+    }
+
+    else {
+
+        bridgeConnectionStatus.textContent =
+            "NOT CONNECTED";
+
+
+        bridgeConnectionStatus.className =
+            "connection-status disconnected";
+
+    }
+
+}
+
+
+/* =========================================================
+   FIND EXISTING GAMEPAD
+   ========================================================= */
+
+/*
+If the controller was connected before
+this page loaded, gamepadconnected may
+not fire immediately.
+
+This checks navigator.getGamepads()
+directly.
+*/
+
+function findExistingGamepad() {
+
+    const gamepads =
+        navigator.getGamepads();
+
+
+    for (
+        const gamepad of gamepads
+    ) {
+
+        if (
+            gamepad
+        ) {
+
+            activeGamepadIndex =
+                gamepad.index;
+
+
+            setControllerConnectionUI(
+                true
+            );
+
+
+            return true;
+
+        }
+
+    }
+
+
+    return false;
+
+}
+
+
+/* =========================================================
+   LOAD IMAGE
    ========================================================= */
 
 function loadImage(src) {
 
     return new Promise(
 
-        function(resolve, reject) {
+        function(
+            resolve,
+            reject
+        ) {
 
             const img =
                 new Image();
@@ -417,7 +1182,10 @@ function loadImage(src) {
                         src
                     );
 
-                    resolve(img);
+
+                    resolve(
+                        img
+                    );
 
                 };
 
@@ -430,12 +1198,16 @@ function loadImage(src) {
                         src
                     );
 
-                    reject(src);
+
+                    reject(
+                        src
+                    );
 
                 };
 
 
-            img.src = src;
+            img.src =
+                src;
 
         }
 
@@ -465,17 +1237,52 @@ function twoDigits(value) {
 
 function applyScale(scale) {
 
+    scale =
+        Math.round(
+            Number(scale)
+        );
+
+
+    scale =
+        Math.max(
+
+            1,
+
+            Math.min(
+                10,
+                scale
+            )
+
+        );
+
+
+    scaleInput.value =
+        scale;
+
+
     canvas.style.width =
-        (240 * scale) + "px";
+
+        (
+            240 *
+            scale
+        ) +
+        "px";
 
 
     canvas.style.height =
-        (240 * scale) + "px";
+
+        (
+            240 *
+            scale
+        ) +
+        "px";
+
+
+    canvas.style.imageRendering =
+        "pixelated";
 
 }
 
-
-/* Apply button */
 
 applyScaleBtn.addEventListener(
 
@@ -483,38 +1290,14 @@ applyScaleBtn.addEventListener(
 
     function() {
 
-        let scale =
-            Number(
-                scaleInput.value
-            );
-
-
-        if (scale < 1) {
-
-            scale = 1;
-
-        }
-
-
-        if (scale > 10) {
-
-            scale = 10;
-
-        }
-
-
-        scaleInput.value =
-            scale;
-
-
-        applyScale(scale);
+        applyScale(
+            scaleInput.value
+        );
 
     }
 
 );
 
-
-/* Reset */
 
 resetScaleBtn.addEventListener(
 
@@ -522,9 +1305,9 @@ resetScaleBtn.addEventListener(
 
     function() {
 
-        scaleInput.value = 1;
-
-        applyScale(1);
+        applyScale(
+            1
+        );
 
     }
 
@@ -532,14 +1315,162 @@ resetScaleBtn.addEventListener(
 
 
 /* =========================================================
-   CONTROL LABELS
+   STATUS LOGIC
+   ========================================================= */
+
+function getStatusText() {
+
+    const running =
+
+        Number(
+            speedSlider.value
+        ) > 0;
+
+
+    const charging =
+        chargingToggle.checked;
+
+
+    const lowBattery =
+
+        batteryLevel <=
+        LOW_BATTERY_THRESHOLD;
+
+
+    if (
+        running
+    ) {
+
+        if (
+            charging
+        ) {
+
+            return (
+                "STATE: RUN / CHARGING"
+            );
+
+        }
+
+
+        if (
+            lowBattery
+        ) {
+
+            return (
+                "STATE: RUN / LOW BATTERY"
+            );
+
+        }
+
+
+        return (
+            "STATE: RUN"
+        );
+
+    }
+
+
+    if (
+        charging
+    ) {
+
+        return (
+            "STATE: CHARGING"
+        );
+
+    }
+
+
+    if (
+        lowBattery
+    ) {
+
+        return (
+            "STATE: LOW BATTERY"
+        );
+
+    }
+
+
+    return (
+        "STATE: READY"
+    );
+
+}
+
+
+/* =========================================================
+   DRAW STATUS
+   ========================================================= */
+
+function drawStatus(
+    force = false
+) {
+
+    const statusText =
+        getStatusText();
+
+
+    if (
+        !force &&
+        statusText ===
+        lastStatusText
+    ) {
+
+        return;
+
+    }
+
+
+    lastStatusText =
+        statusText;
+
+
+    ctx.drawImage(
+
+        staticCanvas,
+
+        STATUS_X,
+        STATUS_Y,
+
+        STATUS_W,
+        STATUS_H,
+
+        STATUS_X,
+        STATUS_Y,
+
+        STATUS_W,
+        STATUS_H
+
+    );
+
+
+    drawPixelText(
+
+        statusText,
+
+        STATUS_X,
+        STATUS_Y
+
+    );
+
+}
+
+
+/* =========================================================
+   CONTROL TEXT
    ========================================================= */
 
 function updateControlTexts() {
 
     batteryText.textContent =
+
         twoDigits(
-            batterySlider.value
+
+            Math.floor(
+                batteryLevel
+            )
+
         );
 
 
@@ -548,6 +1479,7 @@ function updateControlTexts() {
 
 
     openingText.textContent =
+
         twoDigits(
             openingSlider.value
         );
@@ -555,63 +1487,1270 @@ function updateControlTexts() {
 }
 
 
-batterySlider.addEventListener(
-    "input",
-    updateControlTexts
+/* =========================================================
+   CHARGING MODE
+   ========================================================= */
+
+function setChargingMode(
+    enabled
+) {
+
+    chargingToggle.checked =
+        enabled;
+
+
+    drawStatus(
+        true
+    );
+
+}
+
+
+chargingToggle.addEventListener(
+
+    "change",
+
+    function() {
+
+        setChargingMode(
+            chargingToggle.checked
+        );
+
+    }
+
 );
 
 
-speedSlider.addEventListener(
-    "input",
-    updateControlTexts
-);
+/* =========================================================
+   OPENING
+   ========================================================= */
 
+function setOpeningValueWithoutRefresh(
+    value
+) {
+
+    value =
+        Math.round(
+            value
+        );
+
+
+    value =
+
+        Math.max(
+
+            1,
+
+            Math.min(
+                90,
+                value
+            )
+
+        );
+
+
+    const currentValue =
+
+        Number(
+            openingSlider.value
+        );
+
+
+    if (
+        value ===
+        currentValue
+    ) {
+
+        return false;
+
+    }
+
+
+    openingSlider.value =
+        value;
+
+
+    openingText.textContent =
+
+        twoDigits(
+            value
+        );
+
+
+    degreeNeedsCommit =
+        true;
+
+
+    return true;
+
+}
+
+
+/* =========================================================
+   COMMIT OPENING
+   ========================================================= */
+
+function commitOpeningToDisplay() {
+
+    if (
+        !degreeNeedsCommit
+    ) {
+
+        return;
+
+    }
+
+
+    buildDegreeTarget();
+
+
+    degreePixelIndex =
+        0;
+
+
+    degreeTimeAccumulator =
+        0;
+
+
+    degreeNeedsCommit =
+        false;
+
+}
+
+
+/* =========================================================
+   MANUAL OPENING
+   ========================================================= */
 
 openingSlider.addEventListener(
+
     "input",
-    updateControlTexts
+
+    function() {
+
+        openingText.textContent =
+
+            twoDigits(
+                openingSlider.value
+            );
+
+
+        buildDegreeTarget();
+
+
+        degreePixelIndex =
+            0;
+
+
+        degreeTimeAccumulator =
+            0;
+
+
+        degreeNeedsCommit =
+            false;
+
+    }
+
 );
+
+
+/* =========================================================
+   BATTERY LCD RESTART
+   ========================================================= */
+
+function restartBatteryRefresh() {
+
+    buildBatteryTarget();
+
+
+    batteryTileIndex =
+        0;
+
+
+    batteryTimeAccumulator =
+        0;
+
+}
+
+
+/* =========================================================
+   BATTERY SLIDER
+   ========================================================= */
+
+batterySlider.addEventListener(
+
+    "input",
+
+    function() {
+
+        batteryLevel =
+
+            Number(
+                batterySlider.value
+            );
+
+
+        lastDisplayedBattery =
+
+            Math.floor(
+                batteryLevel
+            );
+
+
+        batteryText.textContent =
+
+            twoDigits(
+                lastDisplayedBattery
+            );
+
+
+        restartBatteryRefresh();
+
+
+        drawStatus();
+
+    }
+
+);
+
+
+/* =========================================================
+   SPEED SLIDER
+   ========================================================= */
+
+speedSlider.addEventListener(
+
+    "input",
+
+    function() {
+
+        speedText.textContent =
+            speedSlider.value;
+
+
+        sendFanSpeedToBridge(
+
+            Number(
+                speedSlider.value
+            )
+
+        );
+
+
+        drawStatus();
+
+    }
+
+);
+
+
+/* =========================================================
+   RESET BATTERY
+   ========================================================= */
+
+resetBatteryBtn.addEventListener(
+
+    "click",
+
+    function() {
+
+        batteryLevel =
+            99;
+
+
+        lastDisplayedBattery =
+            99;
+
+
+        batterySlider.value =
+            99;
+
+
+        batteryText.textContent =
+            "99";
+
+
+        restartBatteryRefresh();
+
+
+        drawStatus(
+            true
+        );
+
+    }
+
+);
+
+
+/* =========================================================
+   CONNECT CONTROLLER BRIDGE
+   ========================================================= */
+
+function connectControllerBridge() {
+
+    if (
+        controllerSocket &&
+        (
+            controllerSocket.readyState ===
+            WebSocket.OPEN
+
+            ||
+
+            controllerSocket.readyState ===
+            WebSocket.CONNECTING
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    setBridgeConnectionUI(
+        false
+    );
+
+
+    controllerSocket =
+
+        new WebSocket(
+
+            "ws://127.0.0.1:8765"
+
+        );
+
+
+    controllerSocket.addEventListener(
+
+        "open",
+
+        function() {
+
+            console.log(
+                "Controller bridge connected."
+            );
+
+
+            lastSentFanSpeed =
+                -1;
+
+
+            setBridgeConnectionUI(
+                true
+            );
+
+        }
+
+    );
+
+
+    controllerSocket.addEventListener(
+
+        "close",
+
+        function() {
+
+            console.log(
+                "Controller bridge disconnected."
+            );
+
+
+            setBridgeConnectionUI(
+                false
+            );
+
+
+            controllerSocket =
+                null;
+
+
+            clearTimeout(
+                reconnectTimer
+            );
+
+
+            reconnectTimer =
+
+                setTimeout(
+
+                    connectControllerBridge,
+
+                    1000
+
+                );
+
+        }
+
+    );
+
+
+    controllerSocket.addEventListener(
+
+        "error",
+
+        function() {
+
+            setBridgeConnectionUI(
+                false
+            );
+
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   SEND FAN SPEED
+   ========================================================= */
+
+function sendFanSpeedToBridge(
+    fanSpeed
+) {
+
+    fanSpeed =
+
+        Math.round(
+            fanSpeed
+        );
+
+
+    if (
+        fanSpeed ===
+        lastSentFanSpeed
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        !controllerSocket
+
+        ||
+
+        controllerSocket.readyState !==
+        WebSocket.OPEN
+    ) {
+
+        return;
+
+    }
+
+
+    controllerSocket.send(
+
+        JSON.stringify({
+
+            type:
+                "fanSpeed",
+
+            value:
+                fanSpeed
+
+        })
+
+    );
+
+
+    lastSentFanSpeed =
+        fanSpeed;
+
+}
+
+
+/* =========================================================
+   PAGE CLOSE
+   ========================================================= */
+
+window.addEventListener(
+
+    "beforeunload",
+
+    function() {
+
+        if (
+            controllerSocket
+
+            &&
+
+            controllerSocket.readyState ===
+            WebSocket.OPEN
+        ) {
+
+            controllerSocket.send(
+
+                JSON.stringify({
+
+                    type:
+                        "stop"
+
+                })
+
+            );
+
+        }
+
+    }
+
+);
+
+
+/* =========================================================
+   GAMEPAD CONNECT
+   ========================================================= */
+
+window.addEventListener(
+
+    "gamepadconnected",
+
+    function(event) {
+
+        activeGamepadIndex =
+            event.gamepad.index;
+
+
+        setControllerConnectionUI(
+            true
+        );
+
+
+        console.log(
+
+            "Gamepad connected:",
+
+            event.gamepad.id
+
+        );
+
+    }
+
+);
+
+
+/* =========================================================
+   GAMEPAD DISCONNECT
+   ========================================================= */
+
+window.addEventListener(
+
+    "gamepaddisconnected",
+
+    function(event) {
+
+        if (
+            event.gamepad.index ===
+            activeGamepadIndex
+        ) {
+
+            commitOpeningToDisplay();
+
+
+            activeGamepadIndex =
+                null;
+
+
+            speedSlider.value =
+                0;
+
+
+            speedText.textContent =
+                0;
+
+
+            sendFanSpeedToBridge(
+                0
+            );
+
+
+            dpadUpWasPressed =
+                false;
+
+
+            dpadDownWasPressed =
+                false;
+
+
+            triangleWasPressed =
+                false;
+
+
+            setControllerConnectionUI(
+                false
+            );
+
+
+            drawStatus(
+                true
+            );
+
+        }
+
+    }
+
+);
+
+
+/* =========================================================
+   TRIANGLE INPUT
+   ========================================================= */
+
+function updateTriangleInput(
+    gamepad
+) {
+
+    const triangle =
+
+        gamepad.buttons[
+            TRIANGLE_BUTTON_INDEX
+        ];
+
+
+    if (
+        !triangle
+    ) {
+
+        return;
+
+    }
+
+
+    const pressed =
+        triangle.pressed;
+
+
+    if (
+        pressed &&
+        !triangleWasPressed
+    ) {
+
+        setChargingMode(
+
+            !chargingToggle.checked
+
+        );
+
+    }
+
+
+    triangleWasPressed =
+        pressed;
+
+}
+
+
+/* =========================================================
+   D-PAD INPUT
+   ========================================================= */
+
+function updateDpadInput(
+    gamepad,
+    timestamp
+) {
+
+    const upButton =
+
+        gamepad.buttons[
+            DPAD_UP_INDEX
+        ];
+
+
+    const downButton =
+
+        gamepad.buttons[
+            DPAD_DOWN_INDEX
+        ];
+
+
+    if (
+        !upButton ||
+        !downButton
+    ) {
+
+        return;
+
+    }
+
+
+    const upPressed =
+        upButton.pressed;
+
+
+    const downPressed =
+        downButton.pressed;
+
+
+    const upWasPressed =
+        dpadUpWasPressed;
+
+
+    const downWasPressed =
+        dpadDownWasPressed;
+
+
+    /* -------------------------
+       UP
+       ------------------------- */
+
+    if (
+        upPressed
+    ) {
+
+        if (
+            !upWasPressed
+        ) {
+
+            setOpeningValueWithoutRefresh(
+
+                Number(
+                    openingSlider.value
+                ) + 1
+
+            );
+
+
+            dpadUpPressTime =
+                timestamp;
+
+
+            dpadUpLastRepeatTime =
+                timestamp;
+
+        }
+
+        else {
+
+            const holdTime =
+
+                timestamp -
+                dpadUpPressTime;
+
+
+            const repeatTime =
+
+                timestamp -
+                dpadUpLastRepeatTime;
+
+
+            if (
+                holdTime >=
+                DPAD_REPEAT_DELAY
+
+                &&
+
+                repeatTime >=
+                DPAD_REPEAT_INTERVAL
+            ) {
+
+                setOpeningValueWithoutRefresh(
+
+                    Number(
+                        openingSlider.value
+                    ) + 1
+
+                );
+
+
+                dpadUpLastRepeatTime =
+                    timestamp;
+
+            }
+
+        }
+
+    }
+
+
+    /* -------------------------
+       DOWN
+       ------------------------- */
+
+    if (
+        downPressed
+    ) {
+
+        if (
+            !downWasPressed
+        ) {
+
+            setOpeningValueWithoutRefresh(
+
+                Number(
+                    openingSlider.value
+                ) - 1
+
+            );
+
+
+            dpadDownPressTime =
+                timestamp;
+
+
+            dpadDownLastRepeatTime =
+                timestamp;
+
+        }
+
+        else {
+
+            const holdTime =
+
+                timestamp -
+                dpadDownPressTime;
+
+
+            const repeatTime =
+
+                timestamp -
+                dpadDownLastRepeatTime;
+
+
+            if (
+                holdTime >=
+                DPAD_REPEAT_DELAY
+
+                &&
+
+                repeatTime >=
+                DPAD_REPEAT_INTERVAL
+            ) {
+
+                setOpeningValueWithoutRefresh(
+
+                    Number(
+                        openingSlider.value
+                    ) - 1
+
+                );
+
+
+                dpadDownLastRepeatTime =
+                    timestamp;
+
+            }
+
+        }
+
+    }
+
+
+    /* -------------------------
+       RELEASE
+       ------------------------- */
+
+    const wasAdjusting =
+
+        upWasPressed ||
+        downWasPressed;
+
+
+    const isAdjusting =
+
+        upPressed ||
+        downPressed;
+
+
+    if (
+        wasAdjusting &&
+        !isAdjusting
+    ) {
+
+        commitOpeningToDisplay();
+
+    }
+
+
+    dpadUpWasPressed =
+        upPressed;
+
+
+    dpadDownWasPressed =
+        downPressed;
+
+}
+
+
+/* =========================================================
+   GAMEPAD INPUT
+   ========================================================= */
+
+function updateGamepadInput(
+    timestamp
+) {
+
+    /*
+    If we do not yet have a gamepad,
+    scan for one.
+
+    This lets users connect first,
+    open the page second,
+    then press a button.
+    */
+
+    if (
+        activeGamepadIndex ===
+        null
+    ) {
+
+        findExistingGamepad();
+
+    }
+
+
+    if (
+        activeGamepadIndex ===
+        null
+    ) {
+
+        return;
+
+    }
+
+
+    const gamepads =
+        navigator.getGamepads();
+
+
+    const gamepad =
+
+        gamepads[
+            activeGamepadIndex
+        ];
+
+
+    if (
+        !gamepad
+    ) {
+
+        activeGamepadIndex =
+            null;
+
+
+        setControllerConnectionUI(
+            false
+        );
+
+
+        return;
+
+    }
+
+
+    setControllerConnectionUI(
+        true
+    );
+
+
+    /* Triangle */
+
+    updateTriangleInput(
+        gamepad
+    );
+
+
+    /* D-pad */
+
+    updateDpadInput(
+        gamepad,
+        timestamp
+    );
+
+
+    /* R2 */
+
+    const r2 =
+
+        gamepad.buttons[
+            R2_BUTTON_INDEX
+        ];
+
+
+    if (
+        !r2
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        batteryLevel <= 0
+
+        &&
+
+        !chargingToggle.checked
+    ) {
+
+        speedSlider.value =
+            0;
+
+
+        speedText.textContent =
+            0;
+
+
+        sendFanSpeedToBridge(
+            0
+        );
+
+
+        drawStatus();
+
+
+        return;
+
+    }
+
+
+    let triggerDepth =
+        r2.value;
+
+
+    if (
+        triggerDepth <
+        R2_DEADZONE
+    ) {
+
+        triggerDepth =
+            0;
+
+    }
+
+
+    const previousSpeed =
+
+        Number(
+            speedSlider.value
+        );
+
+
+    const fanSpeed =
+
+        Math.round(
+
+            triggerDepth *
+            100
+
+        );
+
+
+    speedSlider.value =
+        fanSpeed;
+
+
+    speedText.textContent =
+        fanSpeed;
+
+
+    sendFanSpeedToBridge(
+        fanSpeed
+    );
+
+
+    if (
+        (previousSpeed === 0)
+        !==
+        (fanSpeed === 0)
+    ) {
+
+        drawStatus();
+
+    }
+
+}
+
+
+/* =========================================================
+   BATTERY MODEL
+   ========================================================= */
+
+function updateBattery(
+    deltaSeconds
+) {
+
+    const speed =
+
+        Number(
+            speedSlider.value
+        );
+
+
+    const charging =
+        chargingToggle.checked;
+
+
+    const speedRatio =
+
+        speed /
+        100;
+
+
+    const drainPerSecond =
+
+        BATTERY_DRAIN_AT_MAX_SPEED *
+        speedRatio;
+
+
+    const chargePerSecond =
+
+        charging
+            ? BATTERY_CHARGE_PER_SECOND
+            : 0;
+
+
+    const netChange =
+
+        chargePerSecond -
+        drainPerSecond;
+
+
+    batteryLevel +=
+
+        netChange *
+        deltaSeconds;
+
+
+    batteryLevel =
+
+        Math.max(
+
+            0,
+
+            Math.min(
+                99,
+                batteryLevel
+            )
+
+        );
+
+
+    const displayedBattery =
+
+        Math.floor(
+            batteryLevel
+        );
+
+
+    if (
+        displayedBattery !==
+        lastDisplayedBattery
+    ) {
+
+        lastDisplayedBattery =
+            displayedBattery;
+
+
+        batterySlider.value =
+            displayedBattery;
+
+
+        batteryText.textContent =
+
+            twoDigits(
+                displayedBattery
+            );
+
+
+        restartBatteryRefresh();
+
+
+        drawStatus();
+
+    }
+
+
+    if (
+        batteryLevel <= 0
+
+        &&
+
+        !charging
+    ) {
+
+        if (
+            Number(
+                speedSlider.value
+            ) !== 0
+        ) {
+
+            speedSlider.value =
+                0;
+
+
+            speedText.textContent =
+                0;
+
+
+            sendFanSpeedToBridge(
+                0
+            );
+
+
+            drawStatus(
+                true
+            );
+
+        }
+
+    }
+
+}
 
 
 /* =========================================================
    DEGREE STATE
    ========================================================= */
 
-function getDegreeStateIndex(value) {
+function getDegreeStateIndex(
+    value
+) {
 
     value =
         Number(value);
 
 
-    if (value <= 15) {
+    if (
+        value <= 15
+    ) {
 
         return 0;
 
     }
 
 
-    if (value <= 30) {
+    if (
+        value <= 30
+    ) {
 
         return 1;
 
     }
 
 
-    if (value <= 45) {
+    if (
+        value <= 45
+    ) {
 
         return 2;
 
     }
 
 
-    if (value <= 60) {
+    if (
+        value <= 60
+    ) {
 
         return 3;
 
     }
 
 
-    if (value <= 75) {
+    if (
+        value <= 75
+    ) {
 
         return 4;
 
@@ -624,7 +2763,7 @@ function getDegreeStateIndex(value) {
 
 
 /* =========================================================
-   DRAW SMALL DIGIT
+   SMALL DIGIT
    ========================================================= */
 
 function drawSmallDigit(
@@ -634,12 +2773,9 @@ function drawSmallDigit(
     y
 ) {
 
-    const n =
-        Number(digit);
-
-
     const sourceX =
-        n *
+
+        Number(digit) *
         SMALL_DIGIT_CELL;
 
 
@@ -647,17 +2783,11 @@ function drawSmallDigit(
 
         images.openingDigits,
 
-
-        /* source */
-
         sourceX,
         0,
 
         SMALL_DIGIT_W,
         SMALL_DIGIT_H,
-
-
-        /* destination */
 
         x,
         y,
@@ -671,7 +2801,7 @@ function drawSmallDigit(
 
 
 /* =========================================================
-   DRAW BIG DIGIT
+   BIG DIGIT
    ========================================================= */
 
 function drawBigDigit(
@@ -681,12 +2811,9 @@ function drawBigDigit(
     y
 ) {
 
-    const n =
-        Number(digit);
-
-
     const sourceX =
-        n *
+
+        Number(digit) *
         BIG_DIGIT_CELL;
 
 
@@ -694,17 +2821,11 @@ function drawBigDigit(
 
         images.batteryDigits,
 
-
-        /* source */
-
         sourceX,
         0,
 
         BIG_DIGIT_W,
         BIG_DIGIT_H,
-
-
-        /* destination */
 
         x,
         y,
@@ -724,33 +2845,29 @@ function drawBigDigit(
 function buildDegreeTarget() {
 
     degreeCtx.clearRect(
+
         0,
         0,
-        40,
-        40
+
+        DEGREE_W,
+        DEGREE_H
+
     );
 
 
     const value =
+
         Number(
             openingSlider.value
         );
 
 
     const stateIndex =
+
         getDegreeStateIndex(
             value
         );
 
-
-    /*
-    IMPORTANT:
-
-    No forced scaling.
-
-    Use the SVG's original
-    intrinsic width / height.
-    */
 
     degreeCtx.drawImage(
 
@@ -765,12 +2882,11 @@ function buildDegreeTarget() {
 
 
     const text =
-        twoDigits(value);
 
+        twoDigits(
+            value
+        );
 
-    /*
-    First digit
-    */
 
     drawSmallDigit(
 
@@ -779,15 +2895,10 @@ function buildDegreeTarget() {
         text[0],
 
         DEGREE_DIGIT_1_X,
-
         DEGREE_DIGIT_1_Y
 
     );
 
-
-    /*
-    Second digit
-    */
 
     drawSmallDigit(
 
@@ -796,7 +2907,6 @@ function buildDegreeTarget() {
         text[1],
 
         DEGREE_DIGIT_2_X,
-
         DEGREE_DIGIT_2_Y
 
     );
@@ -805,30 +2915,19 @@ function buildDegreeTarget() {
 
 
 /* =========================================================
-   REFRESH ONE DEGREE PIXEL
+   DEGREE PIXEL REFRESH
    ========================================================= */
 
 function refreshOneDegreePixel() {
 
-    /*
-    Pixel order:
-
-    left -> right
-    then next row
-
-    x:
-    0 ... 39
-
-    y:
-    0 ... 39
-    */
-
     const localX =
+
         degreePixelIndex %
         DEGREE_W;
 
 
     const localY =
+
         Math.floor(
 
             degreePixelIndex /
@@ -838,19 +2937,16 @@ function refreshOneDegreePixel() {
 
 
     const screenX =
+
         DEGREE_X +
         localX;
 
 
     const screenY =
+
         DEGREE_Y +
         localY;
 
-
-    /*
-    First restore the
-    original frame pixel
-    */
 
     ctx.drawImage(
 
@@ -870,10 +2966,6 @@ function refreshOneDegreePixel() {
 
     );
 
-
-    /*
-    Then copy the target pixel
-    */
 
     ctx.drawImage(
 
@@ -897,24 +2989,13 @@ function refreshOneDegreePixel() {
     degreePixelIndex++;
 
 
-    /*
-    One complete 40x40 scan
-    */
-
     if (
         degreePixelIndex >=
         DEGREE_TOTAL_PIXELS
     ) {
 
-        degreePixelIndex = 0;
-
-
-        /*
-        Capture current slider
-        value for next scan
-        */
-
-        buildDegreeTarget();
+        degreePixelIndex =
+            0;
 
     }
 
@@ -928,24 +3009,41 @@ function refreshOneDegreePixel() {
 function buildBatteryTarget() {
 
     batteryCtx.clearRect(
+
         0,
         0,
+
         BATTERY_W,
         BATTERY_H
+
     );
 
 
     const value =
-        Number(
-            batterySlider.value
+
+        Math.max(
+
+            0,
+
+            Math.min(
+
+                99,
+
+                Math.floor(
+                    batteryLevel
+                )
+
+            )
+
         );
 
 
     const text =
-        twoDigits(value);
 
+        twoDigits(
+            value
+        );
 
-    /* First number */
 
     drawBigDigit(
 
@@ -959,8 +3057,6 @@ function buildBatteryTarget() {
 
     );
 
-
-    /* Second number */
 
     drawBigDigit(
 
@@ -978,7 +3074,7 @@ function buildBatteryTarget() {
 
 
 /* =========================================================
-   REFRESH ONE BATTERY 10x10 TILE
+   BATTERY TILE REFRESH
    ========================================================= */
 
 function refreshOneBatteryTile() {
@@ -988,22 +3084,14 @@ function refreshOneBatteryTile() {
     let localTileIndex;
 
 
-    /*
-    First 112 tiles =
-    first digit
-
-    Next 112 =
-    second digit
-    */
-
     if (
-
         batteryTileIndex <
         BATTERY_TILES_PER_DIGIT
-
     ) {
 
-        digitIndex = 0;
+        digitIndex =
+            0;
+
 
         localTileIndex =
             batteryTileIndex;
@@ -1012,7 +3100,9 @@ function refreshOneBatteryTile() {
 
     else {
 
-        digitIndex = 1;
+        digitIndex =
+            1;
+
 
         localTileIndex =
 
@@ -1022,17 +3112,14 @@ function refreshOneBatteryTile() {
     }
 
 
-    /*
-    Tile position inside
-    one 80x140 digit
-    */
-
     const column =
+
         localTileIndex %
         BATTERY_TILE_COLUMNS;
 
 
     const row =
+
         Math.floor(
 
             localTileIndex /
@@ -1041,40 +3128,38 @@ function refreshOneBatteryTile() {
         );
 
 
-    /*
-    X inside 170px battery buffer
-    */
-
     const digitOffsetX =
+
         digitIndex === 0
             ? 0
             : 90;
 
 
     const localX =
+
         digitOffsetX +
+
         column *
         BATTERY_TILE_SIZE;
 
 
     const localY =
+
         row *
         BATTERY_TILE_SIZE;
 
 
     const screenX =
+
         BATTERY_X +
         localX;
 
 
     const screenY =
+
         BATTERY_Y +
         localY;
 
-
-    /*
-    Restore old/static background
-    */
 
     ctx.drawImage(
 
@@ -1083,21 +3168,17 @@ function refreshOneBatteryTile() {
         screenX,
         screenY,
 
-        10,
-        10,
+        BATTERY_TILE_SIZE,
+        BATTERY_TILE_SIZE,
 
         screenX,
         screenY,
 
-        10,
-        10
+        BATTERY_TILE_SIZE,
+        BATTERY_TILE_SIZE
 
     );
 
-
-    /*
-    Draw new tile
-    */
 
     ctx.drawImage(
 
@@ -1106,14 +3187,14 @@ function refreshOneBatteryTile() {
         localX,
         localY,
 
-        10,
-        10,
+        BATTERY_TILE_SIZE,
+        BATTERY_TILE_SIZE,
 
         screenX,
         screenY,
 
-        10,
-        10
+        BATTERY_TILE_SIZE,
+        BATTERY_TILE_SIZE
 
     );
 
@@ -1122,21 +3203,106 @@ function refreshOneBatteryTile() {
 
 
     if (
-
         batteryTileIndex >=
         BATTERY_TOTAL_TILES
-
     ) {
 
-        batteryTileIndex = 0;
+        batteryTileIndex =
+            0;
+
+    }
+
+}
 
 
-        /*
-        Capture newest battery
-        value for next cycle
-        */
+/* =========================================================
+   CHARGING PLUS PIXEL
+   ========================================================= */
 
-        buildBatteryTarget();
+function drawChargePlusPixel(
+    x,
+    y,
+    fillEndX
+) {
+
+    if (
+        x <= fillEndX
+    ) {
+
+        ctx.fillStyle =
+            LCD_COLOR;
+
+    }
+
+    else {
+
+        ctx.fillStyle =
+            "black";
+
+    }
+
+
+    ctx.fillRect(
+
+        x,
+        y,
+
+        1,
+        1
+
+    );
+
+}
+
+
+/* =========================================================
+   CHARGING PLUS
+   ========================================================= */
+
+function drawChargingPlus(
+    centerX,
+    centerY,
+    fillEndX
+) {
+
+    /* Vertical */
+
+    for (
+        let dy = -2;
+        dy <= 2;
+        dy++
+    ) {
+
+        drawChargePlusPixel(
+
+            centerX,
+
+            centerY + dy,
+
+            fillEndX
+
+        );
+
+    }
+
+
+    /* Horizontal */
+
+    for (
+        let dx = -2;
+        dx <= 2;
+        dx++
+    ) {
+
+        drawChargePlusPixel(
+
+            centerX + dx,
+
+            centerY,
+
+            fillEndX
+
+        );
 
     }
 
@@ -1147,11 +3313,9 @@ function refreshOneBatteryTile() {
    BATTERY BAR
    ========================================================= */
 
-function drawBatteryBar() {
-
-    /*
-    Restore full bar region first
-    */
+function drawBatteryBar(
+    timestamp
+) {
 
     ctx.drawImage(
 
@@ -1173,20 +3337,39 @@ function drawBatteryBar() {
 
 
     const value =
-        Number(
-            batterySlider.value
+
+        Math.max(
+
+            0,
+
+            Math.min(
+                99,
+                batteryLevel
+            )
+
         );
 
 
     const percentage =
-        value / 99;
+
+        value /
+        99;
+
+
+    const innerX =
+
+        BATTERY_BAR_X +
+        1;
 
 
     const innerWidth =
-        BATTERY_BAR_W - 2;
+
+        BATTERY_BAR_W -
+        2;
 
 
     const fillWidth =
+
         Math.round(
 
             innerWidth *
@@ -1195,63 +3378,132 @@ function drawBatteryBar() {
         );
 
 
-    if (fillWidth <= 0) {
+    const fillEndX =
+
+        innerX +
+        fillWidth -
+        1;
+
+
+    if (
+        fillWidth > 0
+    ) {
+
+        ctx.fillStyle =
+            "black";
+
+
+        ctx.fillRect(
+
+            innerX,
+
+            BATTERY_BAR_Y + 1,
+
+            fillWidth,
+
+            BATTERY_BAR_H - 2
+
+        );
+
+    }
+
+
+    if (
+        !chargingToggle.checked
+    ) {
 
         return;
 
     }
 
 
-    ctx.fillStyle =
-        "black";
+    let plusCenterX =
+
+        innerX +
+        fillWidth +
+        CHARGE_PLUS_LEAD;
 
 
-    ctx.fillRect(
+    const maxPlusCenterX =
 
-        BATTERY_BAR_X + 1,
+        BATTERY_BAR_X +
+        BATTERY_BAR_W -
+        4;
 
-        BATTERY_BAR_Y + 1,
 
-        fillWidth,
+    const minPlusCenterX =
 
-        BATTERY_BAR_H - 2
+        BATTERY_BAR_X +
+        3;
+
+
+    plusCenterX =
+
+        Math.max(
+
+            minPlusCenterX,
+
+            Math.min(
+
+                maxPlusCenterX,
+
+                plusCenterX
+
+            )
+
+        );
+
+
+    const bounce =
+
+        Math.floor(
+
+            timestamp /
+            CHARGE_PLUS_BOUNCE_TIME
+
+        ) % 2;
+
+
+    const plusCenterY =
+
+        BATTERY_BAR_Y +
+        3 +
+        bounce;
+
+
+    drawChargingPlus(
+
+        plusCenterX,
+
+        plusCenterY,
+
+        fillEndX
 
     );
 
 }
 
 
-/* Battery bar updates instantly */
-
-batterySlider.addEventListener(
-
-    "input",
-
-    drawBatteryBar
-
-);
-
-
 /* =========================================================
-   FAN
-   SVG ONLY
+   DRAW FAN
    ========================================================= */
 
 function drawFan() {
 
-    /* =========================================
-       CLEAR OLD ROTATION ARTIFACTS
+    const clearX =
 
-       A 40x40 square becomes about 57x57
-       when rotated 45 degrees.
+        FAN_CENTER_X -
+        30;
 
-       So restore a larger area first.
-       ========================================= */
 
-    const clearX = FAN_CENTER_X - 30;
-    const clearY = FAN_CENTER_Y - 30;
+    const clearY =
 
-    const clearSize = 60;
+        FAN_CENTER_Y -
+        30;
+
+
+    const clearSize =
+        60;
 
 
     ctx.drawImage(
@@ -1260,72 +3512,55 @@ function drawFan() {
 
         clearX,
         clearY,
+
         clearSize,
         clearSize,
 
         clearX,
         clearY,
+
         clearSize,
         clearSize
 
     );
 
 
-    /* =========================================
-       DRAW FAN
-       ========================================= */
-
     ctx.save();
 
 
-    /*
-    Do not allow the NEW fan drawing
-    outside the 40x40 Fan frame.
-    */
-
     ctx.beginPath();
 
+
     ctx.rect(
+
         FAN_X,
         FAN_Y,
+
         FAN_W,
         FAN_H
+
     );
+
 
     ctx.clip();
 
 
-    /*
-    Keep the original rendering behavior.
-    */
+    ctx.imageSmoothingEnabled =
+        false;
 
-    ctx.imageSmoothingEnabled = false;
-
-
-    /*
-    Move rotation center to
-    center of Fan frame.
-    */
 
     ctx.translate(
+
         FAN_CENTER_X,
         FAN_CENTER_Y
+
     );
 
-
-    /*
-    Use the normal continuous angle.
-    */
 
     ctx.rotate(
         fanAngle
     );
 
-
-    /*
-    Draw original 40x40 SVG.
-    No extra graphics.
-    */
 
     ctx.drawImage(
 
@@ -1342,33 +3577,34 @@ function drawFan() {
 
     ctx.restore();
 
+
+    ctx.imageSmoothingEnabled =
+        false;
+
 }
 
 
 /* =========================================================
-   UPDATE FAN ANGLE
+   UPDATE FAN
    ========================================================= */
 
-function updateFan(deltaSeconds) {
+function updateFan(
+    deltaSeconds
+) {
 
     const speed =
+
         Number(
             speedSlider.value
         );
 
 
-    /* =========================================
-       STOPPED
-       ========================================= */
+    if (
+        speed <= 0
+    ) {
 
-    if (speed <= 0) {
-
-        /*
-        Always return to original
-        vertical + horizontal position.
-        */
-
-        fanAngle = 0;
+        fanAngle =
+            0;
 
 
         drawFan();
@@ -1378,14 +3614,14 @@ function updateFan(deltaSeconds) {
     }
 
 
-    /* =========================================
-       RUNNING
-       ========================================= */
-
     const rotationsPerSecond =
 
         FAN_MAX_RPS *
-        (speed / 100);
+
+        (
+            speed /
+            100
+        );
 
 
     const radiansPerSecond =
@@ -1401,10 +3637,6 @@ function updateFan(deltaSeconds) {
         deltaSeconds;
 
 
-    /*
-    Keep angle manageable.
-    */
-
     fanAngle %=
 
         Math.PI *
@@ -1417,16 +3649,16 @@ function updateFan(deltaSeconds) {
 
 
 /* =========================================================
-   MAIN ANIMATION LOOP
+   MAIN LOOP
    ========================================================= */
 
-function animate(timestamp) {
+function animate(
+    timestamp
+) {
 
-    /*
-    First frame
-    */
-
-    if (!previousTime) {
+    if (
+        !previousTime
+    ) {
 
         previousTime =
             timestamp;
@@ -1435,6 +3667,7 @@ function animate(timestamp) {
 
 
     const deltaMs =
+
         timestamp -
         previousTime;
 
@@ -1444,23 +3677,34 @@ function animate(timestamp) {
 
 
     const deltaSeconds =
+
         deltaMs /
         1000;
 
 
-    /* =====================================================
-       DEGREE PIXEL REFRESH
-       ===================================================== */
+    /* Controller */
+
+    updateGamepadInput(
+        timestamp
+    );
+
+
+    /* Battery */
+
+    updateBattery(
+        deltaSeconds
+    );
+
+
+    /* Degree */
 
     degreeTimeAccumulator +=
         deltaMs;
 
 
     while (
-
         degreeTimeAccumulator >=
         DEGREE_PIXEL_TIME
-
     ) {
 
         refreshOneDegreePixel();
@@ -1472,19 +3716,15 @@ function animate(timestamp) {
     }
 
 
-    /* =====================================================
-       BATTERY TILE REFRESH
-       ===================================================== */
+    /* Battery numbers */
 
     batteryTimeAccumulator +=
         deltaMs;
 
 
     while (
-
         batteryTimeAccumulator >=
         BATTERY_TILE_TIME
-
     ) {
 
         refreshOneBatteryTile();
@@ -1496,12 +3736,17 @@ function animate(timestamp) {
     }
 
 
-    /* =====================================================
-       FAN
-       ===================================================== */
+    /* Fan */
 
     updateFan(
         deltaSeconds
+    );
+
+
+    /* Battery bar */
+
+    drawBatteryBar(
+        timestamp
     );
 
 
@@ -1513,7 +3758,7 @@ function animate(timestamp) {
 
 
 /* =========================================================
-   INITIALIZE
+   INIT
    ========================================================= */
 
 async function init() {
@@ -1521,24 +3766,47 @@ async function init() {
     try {
 
 
-        /* =================================================
-           FRAME FIRST
+        /* -------------------------
+           CONNECTION UI
+           ------------------------- */
 
-           This means the UI frame appears
-           even before other assets finish loading.
-           ================================================= */
+        setControllerConnectionUI(
+            false
+        );
+
+
+        setBridgeConnectionUI(
+            false
+        );
+
+
+        /*
+        Detect a controller that may
+        already be connected.
+        */
+
+        findExistingGamepad();
+
+
+        /* -------------------------
+           FRAME
+           ------------------------- */
 
         images.frame =
+
             await loadImage(
                 ASSETS.frame
             );
 
 
         staticCtx.clearRect(
+
             0,
             0,
+
             240,
             240
+
         );
 
 
@@ -1555,15 +3823,14 @@ async function init() {
         );
 
 
-        /*
-        Immediately show base screen
-        */
-
         ctx.clearRect(
+
             0,
             0,
+
             240,
             240
+
         );
 
 
@@ -1577,29 +3844,30 @@ async function init() {
         );
 
 
-        /* =================================================
+        /* -------------------------
            OTHER ASSETS
-           ================================================= */
+           ------------------------- */
 
         images.batteryDigits =
+
             await loadImage(
                 ASSETS.batteryDigits
             );
 
 
         images.openingDigits =
+
             await loadImage(
                 ASSETS.openingDigits
             );
 
 
         images.fan =
+
             await loadImage(
                 ASSETS.fan
             );
 
-
-        /* Degree states */
 
         for (
 
@@ -1613,6 +3881,7 @@ async function init() {
         ) {
 
             const img =
+
                 await loadImage(
 
                     ASSETS.degreeStates[i]
@@ -1627,48 +3896,102 @@ async function init() {
         }
 
 
-        /* =================================================
-           INITIAL UI
-           ================================================= */
+        /* -------------------------
+           DEFAULT STATE
+           ------------------------- */
+
+        batteryLevel =
+            99;
+
+
+        lastDisplayedBattery =
+            99;
+
+
+        batterySlider.value =
+            99;
+
+
+        chargingToggle.checked =
+            false;
+
+
+        triangleWasPressed =
+            false;
+
+
+        /* -------------------------
+           UI
+           ------------------------- */
 
         updateControlTexts();
 
 
         applyScale(
-
-            Number(
-                scaleInput.value
-            )
-
+            scaleInput.value
         );
 
 
-        /*
-        Build first target states
-        */
+        /* -------------------------
+           DEGREE
+           ------------------------- */
 
         buildDegreeTarget();
+
+
+        degreePixelIndex =
+            0;
+
+
+        degreeTimeAccumulator =
+            0;
+
+
+        degreeNeedsCommit =
+            false;
+
+
+        /* -------------------------
+           BATTERY
+           ------------------------- */
 
         buildBatteryTarget();
 
 
-        /*
-        Initial battery bar
-        */
-
-        drawBatteryBar();
+        batteryTileIndex =
+            0;
 
 
-        /*
-        Initial static fan
-        */
+        batteryTimeAccumulator =
+            0;
+
+
+        /* -------------------------
+           FAN
+           ------------------------- */
 
         drawFan();
 
 
-        /* =================================================
-           START ANIMATION
-           ================================================= */
+        /* -------------------------
+           STATUS
+           ------------------------- */
+
+        drawStatus(
+            true
+        );
+
+
+        /* -------------------------
+           LOCAL EXE BRIDGE
+           ------------------------- */
+
+        connectControllerBridge();
+
+
+        /* -------------------------
+           START
+           ------------------------- */
 
         requestAnimationFrame(
             animate
