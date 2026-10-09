@@ -1,0 +1,23 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; color: #111; }
+#navbar { height: 180px; display: flex; align-items: center; justify-content: space-between; padding: 0 8.8%; gap: 20px; }
+#navbar h1 { font-size: 24px; letter-spacing: 1px; white-space: nowrap; }
+nav { display: flex; justify-content: space-between; width: 55%; gap: 12px; }
+nav a { font-size: 14px; font-weight: bold; letter-spacing: 4px; color: #111; text-decoration: none; white-space: nowrap; }
+.layout { display: flex; min-height: calc(100vh - 180px); background: #f1f1f1; }
+.sidebar { width: 26%; flex-shrink: 0; padding: 18px 22px; background: #e6e6e6; text-align: center; }
+h2 { font-size: 19px; margin: 0; }
+#resultId { font-size: 17px; margin: 0; }
+#totalMessage { margin: 0; color: #666; font-style: italic; font-size: 15px; }
+.history-heading { margin-top: 18px; margin-bottom: 3px; }
+#summary { font-size: 11px; color: #555; text-align: left; text-transform: uppercase; }
+#historyList { margin: 8px 0; padding-left: 22px; text-align: left; font-size: 11px; }
+.history-item { border: 0; padding: 0; color: inherit; font: inherit; background: transparent; cursor: pointer; }
+.history-item:hover { color: #fa5057; text-decoration: line-through; }
+.main-content { flex: 1; min-width: 0; padding: 18px 28px; }
+.buttons { display: flex; gap: 18px; margin: 37px 0 18px; }
+.buttons button { flex: 1; min-width: 0; height: 57px; background: #ccc; border: 0; border-radius: 15px; font-size: 17px; cursor: pointer; }
+.buttons button:hover { background: #bbb; }
+#clearAll { width: 100%; min-height: 39px; background: #ff535a; border: 0; border-radius: 10px; color: white; font-size: 17px; cursor: pointer; }
+#clearAll:hover { background: #ed4047; }
+@media (max-width: 650px) { #navbar { padding: 30px 5%; height: auto; flex-wrap: wrap; } nav { width: 100%; } .sidebar { width: 34%; padding: 18px 10px; } .main-content { padding: 18px 12px; } .buttons { gap: 5px; } .buttons button { font-size: 14px; } }
