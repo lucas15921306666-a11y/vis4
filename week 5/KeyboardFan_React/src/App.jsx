@@ -6,8 +6,10 @@ import FanScene from "./components/three/FanScene.jsx";
 import { useFanState } from "./hooks/useFanState.js";
 import { useGamepad } from "./hooks/useGamepad.js";
 import { useHapticBridge } from "./hooks/useHapticBridge.js";
+import { useFanSound } from "./hooks/useFanSound.js";
 import "./fan3d.css";
 import "./battery-power.css";
+import "./fan-sound.css";
 
 export default function App() {
   const fan = useFanState();
@@ -53,6 +55,7 @@ export default function App() {
   });
 
   const { connected: bridgeConnected } = useHapticBridge(guardedFan.speed);
+  const sound = useFanSound(guardedFan.speed);
 
   return (
     <main className="fan-app-layout">
@@ -69,7 +72,16 @@ export default function App() {
           controllerConnected={controllerConnected}
           bridgeConnected={bridgeConnected}
         />
-        <div className="fan-side-controls"><ControlsPanel fan={guardedFan} /></div>
+        <div className="fan-side-controls">
+          <ControlsPanel fan={guardedFan} />
+          <div className="fan-sound-row">
+            <span className="fan-sound-label">FAN AUDIO / MOTOR + AIRFLOW</span>
+            <button type="button" className="fan-sound-button" onClick={sound.toggle} aria-pressed={sound.enabled}>
+              {sound.enabled ? "MUTE SOUND" : "ENABLE SOUND"}
+            </button>
+            {sound.error && <span className="fan-sound-error" role="alert">{sound.error}</span>}
+          </div>
+        </div>
       </aside>
     </main>
   );

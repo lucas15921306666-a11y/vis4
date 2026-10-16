@@ -1,25 +1,26 @@
-# Portable Fan — Realistic Studio Rendering
+# Portable Fan — Sound Update
 
-Replace these three files in `src/components/three/`:
+This update adds motor/airflow sound that changes volume and pitch with the existing fan speed. It does NOT change `FanScene.jsx`, the renderer, the Python bridge, or existing mechanics.
 
-- `FanScene.jsx`: preserves V4 annotations and animations; refines renderer exposure, antialiasing and grain intensity.
-- `FanMaterials.js`: only `塑料玻璃着色器` and `拉丝金属` are replaced.
-- `StudioLighting.jsx`: precomputed studio environment map and improved key/fill/rim light placement.
+## Replace/add
+- Replace `src/App.jsx`
+- Add `src/hooks/useFanSound.js`
+- Add `src/fan-sound.css`
 
-No changes to GLB, OLED, device input, airflow or Python Bridge.
+The included `App.jsx` follows the annotation layout with right-side Setup, Controller, and slider controls. If your App.jsx has diverged, preserve it and copy over only the `useFanSound` import/call and the button markup instead.
 
-## Starting adjustments
+## How to test
+1. `npm run dev`
+2. Click **ENABLE SOUND** on the right panel. This is required by browser audio autoplay restrictions.
+3. Increase Fan Speed with R2 or the slider.
+4. Check the pitch/volume rise gradually; 0% is silent.
+5. Click **MUTE SOUND** to turn off.
 
-In `FanScene.jsx`:
-- `renderer.toneMappingExposure = 1.0`: increase to `1.1` if too dark, decrease to `0.9` if washed out.
-- `grainPass.uniforms.amount.value = 0.012`: tiny camera-like grain.
+## Tuning
+In `src/hooks/useFanSound.js`:
+- `master.gain.value = 0.55` changes total volume.
+- `engine.noiseGain.gain` target changes airflow loudness.
+- `engine.whine.frequency` target changes high-speed pitch.
+- `engine.whineGain.gain` target changes high-pitched turbine sound.
 
-In `FanMaterials.js`:
-- frosted plastic `roughness: 0.42` and `transmission: 0.82`.
-- gray metal `roughness: 0.38`, `metalness: 0.80`.
-
-## Limits
-
-This uses Three.js WebGL and precomputed reflections, not ray-traced Cycles. Frosted transmission through complex multilayer shells can differ from physically accurate offline rendering. The sheen and diffusion will need assessment in your actual browser and model scale.
-
-Keep backups of current working files.
+Audio is Web Audio synthesized locally, so no MP3 or new packages are needed. R2 adaptive resistance still comes from the independent Python bridge.

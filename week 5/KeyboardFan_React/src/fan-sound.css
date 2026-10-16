@@ -1,0 +1,27 @@
+.fan-sound-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 13px 0;
+  border-top: 1px solid rgba(207, 251, 80, 0.2);
+}
+.fan-sound-label {
+  color: #9ca9a3;
+  font-family: 'FanPixelMono', Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: .07em;
+}
+.fan-sound-button {
+  border: 1px solid #cffb50;
+  background: #131b1b;
+  color: #cffb50;
+  padding: 10px 12px;
+  font-family: 'FanPixelMono', Consolas, monospace;
+  font-size: 10px;
+  cursor: pointer;
+}
+.fan-sound-button:hover { background: #263a2d; }
+.fan-sound-error { color: #ff8e8e; font-size: 11px; width: 100%; }
