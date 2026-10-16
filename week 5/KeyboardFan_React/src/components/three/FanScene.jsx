@@ -7,6 +7,7 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { GrainShader } from "./GrainShader.js";
 import { applyFanMaterials } from "./FanMaterials.js";
 import { createStudioLighting } from "./StudioLighting.jsx";
+import { createAirflowParticles } from "./AirflowParticles.js";
 
 const DEADZONE = 0.14;
 const clamp = (n, low, high) => Math.min(high, Math.max(low, n));
@@ -21,6 +22,10 @@ const TRIGGER_MAX_ANGLE = 0.28; // radians, ~16 degrees
 // Adjust these two vectors if your actual battery/cable slide direction differs.
 const BATTERY_REMOVE_OFFSET = new THREE.Vector3(0, 0.65, -0.65);
 const CABLE_UNPLUG_OFFSET = new THREE.Vector3(0, 0.25, -0.25);
+// Opening-slider: local translation from the original mesh position at 1° to 90°.
+// Adjust this vector if the slider in your model moves in the opposite direction.
+const OPENING_SLIDE_OFFSET = new THREE.Vector3(0, 0, 10); // Visible test travel; tune to actual rail length
+const OPENING_SLIDE_DAMPING = 12;
 const SWAP_DURATION = 2.7; // seconds
 const lerp01 = (t) => Math.min(1, Math.max(0, t));
 const smooth = (t) => { const x = lerp01(t); return x * x * (3 - 2 * x); };
@@ -31,14 +36,16 @@ const phase = (t, a, b) => smooth((t - a) / (b - a));
  * No duplicated fan-speed state: this component only reads speed.
  * viewInputRef is read once per rendered frame, avoiding React rerenders on every stick movement.
  */
-export default function FanScene({ speed, viewInputRef, charging = false, swapId = 0, onSwapComplete, onBatteryPowerChange }) {
+export default function FanScene({ speed, opening = 1, viewInputRef, charging = false, swapId = 0, onSwapComplete, onBatteryPowerChange }) {
   const mountRef = useRef(null);
   const modelRef = useRef(null);
   const speedRef = useRef(speed);
+  const openingRef = useRef(opening);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [nodes, setNodes] = useState({});
   speedRef.current = speed;
+  openingRef.current = opening;
   const chargingRef = useRef(charging);
   const swapIdRef = useRef(swapId);
   const doneRef = useRef(onSwapComplete);
@@ -85,6 +92,9 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
     let rotor = null;
     let trigger = null;
     let triggerOriginal = 0;
+    let openingPart = null;
+    let openingPartHome = null;
+    let airflow = null;
     let battery = null;
     let cable = null;
     let batteryHome = null;
@@ -114,6 +124,17 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
       disposeFanMaterials = applyFanMaterials(root);
       rotor = root.getObjectByName("Rotor_Pivot");
       trigger = root.getObjectByName("Trigger_Pivot");
+      openingPart = root.getObjectByName("贝塞尔曲线.004");
+      openingPartHome = openingPart?.position.clone() || null;
+      if (openingPart) {
+        console.info("[Fan Opening] Found mesh:", openingPart.name,
+          "local position:", openingPart.position.toArray(),
+          "parent:", openingPart.parent?.name);
+      } else {
+        console.warn("[Fan Opening] Missing 贝塞尔曲线.004 in GLB");
+      }
+      const airflowOrigin = root.getObjectByName("Airflow_Origin");
+      if (airflowOrigin) airflow = createAirflowParticles(airflowOrigin);
       battery = root.getObjectByName("Battery_Pivot");
       cable = root.getObjectByName("Charging_Cable");
       batteryHome = battery?.position.clone() || null;
@@ -241,7 +262,17 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
         doneRef.current?.(activeSwapId);
       }
 
+      // One source of truth: React opening state drives both the real sliding
+      // part and the particle cone. Slider and left stick stay synchronized.
+      const opening = clamp(openingRef.current || 1, 1, 90);
+      if (openingPart && openingPartHome) {
+        const slide = (opening - 1) / 89;
+        const targetPosition = openingPartHome.clone().addScaledVector(OPENING_SLIDE_OFFSET, slide);
+        openingPart.position.lerp(targetPosition, 1 - Math.exp(-OPENING_SLIDE_DAMPING * delta));
+        openingPart.updateMatrix();
+      }
       const speed01 = swapping ? 0 : (speedRef.current || 0) / 100;
+      airflow?.update(delta, speed01 * 100, opening, !powerOff && !swapping);
       if (rotor) rotor.rotation[ROTOR_LOCAL_AXIS] += delta * speed01 * Math.PI * 18;
       if (trigger) {
         const goal = triggerOriginal + TRIGGER_MAX_ANGLE * speed01;
@@ -270,6 +301,7 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
           mats.forEach((m) => m?.dispose());
         }
       });
+      airflow?.dispose();
       poweredOffScreenMaterial.dispose();
       disposeFanMaterials?.();
       disposeStudioLighting();

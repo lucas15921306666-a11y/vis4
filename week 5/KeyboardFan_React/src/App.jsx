@@ -57,7 +57,7 @@ export default function App() {
   return (
     <main className="fan-app-layout">
       <section className="fan-workspace">
-        <FanScene speed={guardedFan.speed} charging={guardedFan.charging} swapId={swapId} onSwapComplete={onSwapComplete} onBatteryPowerChange={setBatteryPowerOff} viewInputRef={viewInputRef} />
+        <FanScene speed={guardedFan.speed} opening={fan.opening} charging={guardedFan.charging} swapId={swapId} onSwapComplete={onSwapComplete} onBatteryPowerChange={setBatteryPowerOff} viewInputRef={viewInputRef} />
         <ControlsPanel fan={guardedFan} />
       </section>
 

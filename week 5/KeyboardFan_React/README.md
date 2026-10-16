@@ -1,26 +1,19 @@
-# Battery swap + charging cable fix (V2)
+# Airflow + Slider Fix
 
-Copy the following files into your existing React project:
+Replace only these two files in the existing project:
 
-- `src/App.jsx` (replace)
-- `src/components/three/FanScene.jsx` (replace)
-- `src/battery-power.css` (new)
+- `src/components/three/FanScene.jsx`
+- `src/components/three/AirflowParticles.js`
 
-You do not need to change the Blender GLB, Gamepad hook, charging UI, or Haptic Bridge.
+Changes:
+- `立方体.012` opening travel increased from 0.22 to **0.75 model units** on its parent's local Z axis, with diagnostic info printed in the developer console.
+- Airflow geometry rotated **+90 degrees around its own X axis** to compensate for the Blender Empty's -90° X orientation.
+- Particle budget increased **380 → 2400**, with larger sprites, stronger alpha, and better visibility at lower fan speeds.
+- Kept the prior swap/charging/trigger/rotor/grain code unchanged.
 
-## Changes
+## Testing
+1. Open browser developer tools and check the `[Fan Opening] Found mesh` log after GLB loads.
+2. Change Opening from 1° to 90°. The test offset is 0.75 in `FanScene.jsx`. Adjust sign or vector components to match the physical slider mechanism; 0.75 is not a calibrated travel value.
+3. Set fan speed 50–80%. Check for dense blue particles exiting the nozzle. If direction is backwards, change `AIRFLOW_FORWARD_SIGN` in `AirflowParticles.js` from `1` to `-1`.
 
-- New Blender local offsets: battery `(0, 0.65, -0.65)` and cable `(0, 0.25, -0.25)`.
-- No charging: cable begins and stays hidden. Charging enabled: cable becomes visible while plugging in, and retracts then hides when disabled.
-- Battery swap: battery moves out 0.25-0.95 s, disappears 0.95-1.3 s, new battery becomes visible and slides in 1.3-2.35 s.
-- Main 240x240 LCD is blacked out via CSS while the battery is disengaged (0.25-2.35 s).
-- The 3D `Screen_Display` mesh is also temporarily replaced with a black unlit material during the same interval, then restored.
-- Power-off state is sent by `FanScene` to `App` through `onBatteryPowerChange`.
-- Retains original React imports, postprocessing, controls, rotor z-axis and trigger x-axis/0.28 angle.
-
-## Test
-
-Run `npm run dev`; use webpage Reset to 99% or DualSense X to swap.
-Use Charging switch or Triangle to plug or unplug.
-
-Note: offsets are in the Blender Empty object's parent coordinate system. This update has been syntax inspected, but not tested against physical DualSense hardware or a running browser.
+Future visual tuning: lower `COUNT` to 1400 on slower GPUs, or lower the `uOpacity` formula for softer airflow.
