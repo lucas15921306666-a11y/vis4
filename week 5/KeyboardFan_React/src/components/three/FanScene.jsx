@@ -107,12 +107,40 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
     let cableInsertion = 0;
     let screen = null;
     let screenOriginalMaterial = null;
+    let screenCanvasMaterial = null;
+    let screenCanvasTexture = null;
+    let lcdCanvas = null;
+    let lcdRetryElapsed = 0;
+
+    // The React LCD is the single source of truth for both screen views.
+    // The CanvasTexture shares the existing 240x240 pixel buffer.
+    const attachLCD = () => {
+      if (!screen?.isMesh || screenCanvasTexture) return;
+      const source = document.querySelector(".fan-interface-column canvas.lcd-screen")
+        || document.querySelector("canvas.lcd-screen");
+      if (!source || source.width !== 240 || source.height !== 240) return;
+      lcdCanvas = source;
+      screenCanvasTexture = new THREE.CanvasTexture(lcdCanvas);
+      screenCanvasTexture.colorSpace = THREE.SRGBColorSpace;
+      screenCanvasTexture.flipY = false; // GLB UV coordinates, like GLTFLoader textures
+      screenCanvasTexture.magFilter = THREE.NearestFilter;
+      screenCanvasTexture.minFilter = THREE.LinearFilter;
+      screenCanvasTexture.generateMipmaps = false;
+      screenCanvasMaterial = new THREE.MeshBasicMaterial({
+        map: screenCanvasTexture,
+        side: THREE.DoubleSide,
+        toneMapped: false,
+        depthWrite: true,
+      });
+      if (!powerOff) screen.material = screenCanvasMaterial;
+      console.info("[OLED] Linked 240x240 React LCD to Screen_Display");
+    };
     const poweredOffScreenMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
     let powerOff = false;
     const setPowerOff = (off) => {
       if (powerOff === off) return;
       powerOff = off;
-      if (screen && screenOriginalMaterial) screen.material = off ? poweredOffScreenMaterial : screenOriginalMaterial;
+      if (screen && screenOriginalMaterial) screen.material = off ? poweredOffScreenMaterial : (screenCanvasMaterial || screenOriginalMaterial);
       powerChangeRef.current?.(off);
     };
     let activeSwapId = swapIdRef.current;
@@ -151,7 +179,7 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
         cable.visible = false;
       }
       screen = root.getObjectByName("Screen_Display");
-      if (screen?.isMesh) screenOriginalMaterial = screen.material;
+      if (screen?.isMesh) { screenOriginalMaterial = screen.material; attachLCD(); }
       triggerOriginal = trigger?.rotation[TRIGGER_LOCAL_AXIS] || 0;
       setNodes({ root: root.name, rotor: !!rotor, trigger: !!trigger, battery: !!battery, cable: !!cable, screen: !!screen });
 
@@ -165,6 +193,23 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
       fittedRadius = longest * 1.75;
       orbit.radius = fittedRadius;
       defaults.radius = fittedRadius;
+
+      // Our camera uses a custom spherical orbit (not OrbitControls).
+      // Use the visible OLED geometry center as the orbit target, in WORLD space.
+      // This must be computed AFTER the whole model has been centered.
+      root.updateMatrixWorld(true);
+      if (screen?.isMesh) {
+        const screenBounds = new THREE.Box3().setFromObject(screen);
+        if (!screenBounds.isEmpty()) {
+          screenBounds.getCenter(target);
+          console.info("[Camera] Orbit target = Screen_Display center:", target.toArray());
+        } else {
+          console.warn("[Camera] Screen_Display has no valid bounds; using model center.");
+        }
+      } else {
+        console.warn("[Camera] Screen_Display not found; using model center.");
+      }
+
       modelRef.current = { rotor, trigger };
       setLoading(false);
     }, undefined, () => {
@@ -289,6 +334,13 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
         const goal = triggerOriginal + TRIGGER_MAX_ANGLE * speed01;
         trigger.rotation[TRIGGER_LOCAL_AXIS] = THREE.MathUtils.damp(trigger.rotation[TRIGGER_LOCAL_AXIS], goal, 12, delta);
       }
+      // Canvas is rendered by the existing LCD engine. Refresh the texture on
+      // every frame to preserve pixel animation, charge state, and battery scans.
+      if (screen && !screenCanvasTexture) {
+        lcdRetryElapsed += delta;
+        if (lcdRetryElapsed >= 0.25) { lcdRetryElapsed = 0; attachLCD(); }
+      }
+      if (screenCanvasTexture && !powerOff) screenCanvasTexture.needsUpdate = true;
       grainPass.uniforms.time.value += delta;
       composer.render();
     }
@@ -313,6 +365,10 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
         }
       });
       airflow?.dispose();
+      // Restore the original GLB material before disposing our canvas material.
+      if (screen && screenOriginalMaterial) screen.material = screenOriginalMaterial;
+      screenCanvasMaterial?.dispose();
+      screenCanvasTexture?.dispose();
       poweredOffScreenMaterial.dispose();
       disposeFanMaterials?.();
       disposeStudioLighting();
