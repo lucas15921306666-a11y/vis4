@@ -1,33 +1,25 @@
-# 3D Annotation + Circle Input V3
+# Portable Fan — Realistic Studio Rendering
 
-Replace these four files in your existing project:
+Replace these three files in `src/components/three/`:
 
-- `src/components/three/FanScene.jsx`
-- `src/hooks/useGamepad.js`
-- `src/components/panels/ControllerGuide.jsx`
-- `src/fan3d.css`
+- `FanScene.jsx`: preserves V4 annotations and animations; refines renderer exposure, antialiasing and grain intensity.
+- `FanMaterials.js`: only `塑料玻璃着色器` and `拉丝金属` are replaced.
+- `StudioLighting.jsx`: precomputed studio environment map and improved key/fill/rim light placement.
 
-No changes to Python, model (`public/models/PortableFan.glb`), OLED, materials or battery/cable animations.
+No changes to GLB, OLED, device input, airflow or Python Bridge.
 
-## Annotation numbering
+## Starting adjustments
 
-- 01 Trigger / Airflow (pointer, left)
-- 02 Battery Module (pointer, left)
-- 03 Fan Opening (pointer, right)
-- 04 Charging Port (pointer, right)
-- 05 View Orbit (left, no pointer)
-- 06 Camera Zoom (left, no pointer)
+In `FanScene.jsx`:
+- `renderer.toneMappingExposure = 1.0`: increase to `1.1` if too dark, decrease to `0.9` if washed out.
+- `grainPass.uniforms.amount.value = 0.012`: tiny camera-like grain.
 
-## Controller
+In `FanMaterials.js`:
+- frosted plastic `roughness: 0.42` and `transmission: 0.82`.
+- gray metal `roughness: 0.38`, `metalness: 0.80`.
 
-- Circle (○) toggles annotation visibility, equivalent to Hide/Show Labels.
-- Right stick changes 3D view, D-pad up/down zooms.
-- All previous actions remain mapped.
+## Limits
 
-## Charging port out of view
+This uses Three.js WebGL and precomputed reflections, not ray-traced Cycles. Frosted transmission through complex multilayer shells can differ from physically accurate offline rendering. The sheen and diffusion will need assessment in your actual browser and model scale.
 
-Label stays visible. If its anchor moves offscreen but is still in front of the camera, the leader ends at the viewport boundary. When behind the camera, leader is hidden but label stays visible to avoid misleading direction.
-
-## Important
-
-`FanScene.jsx` imports React. No font asset changes are needed; existing FanPixelMono.ttf remains in use.
+Keep backups of current working files.
