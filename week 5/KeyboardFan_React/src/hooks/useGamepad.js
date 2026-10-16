@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useRef, useState } from "react";
 
 const BUTTON = { TRIANGLE: 3, SQUARE: 2, R2: 7 };

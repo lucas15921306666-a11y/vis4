@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -7,7 +8,7 @@ const clamp = (n, low, high) => Math.min(high, Math.max(low, n));
 const stick = (n) => Math.abs(n) > DEADZONE ? n : 0;
 
 // Change these two axes only if the pivot's local rotation axis differs in Blender.
-const ROTOR_LOCAL_AXIS = "y";
+const ROTOR_LOCAL_AXIS = "z";
 const TRIGGER_LOCAL_AXIS = "x";
 const TRIGGER_MAX_ANGLE = -0.28; // radians, ~16 degrees
 

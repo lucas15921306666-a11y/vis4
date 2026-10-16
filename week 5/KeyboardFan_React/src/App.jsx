@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 import DisplayColumn from "./components/display/DisplayColumn.jsx";
 import ControlsPanel from "./components/controls/ControlsPanel.jsx";
