@@ -1,19 +1,33 @@
-# Airflow + Slider Fix
+# 3D Annotation + Circle Input V3
 
-Replace only these two files in the existing project:
+Replace these four files in your existing project:
 
 - `src/components/three/FanScene.jsx`
-- `src/components/three/AirflowParticles.js`
+- `src/hooks/useGamepad.js`
+- `src/components/panels/ControllerGuide.jsx`
+- `src/fan3d.css`
 
-Changes:
-- `立方体.012` opening travel increased from 0.22 to **0.75 model units** on its parent's local Z axis, with diagnostic info printed in the developer console.
-- Airflow geometry rotated **+90 degrees around its own X axis** to compensate for the Blender Empty's -90° X orientation.
-- Particle budget increased **380 → 2400**, with larger sprites, stronger alpha, and better visibility at lower fan speeds.
-- Kept the prior swap/charging/trigger/rotor/grain code unchanged.
+No changes to Python, model (`public/models/PortableFan.glb`), OLED, materials or battery/cable animations.
 
-## Testing
-1. Open browser developer tools and check the `[Fan Opening] Found mesh` log after GLB loads.
-2. Change Opening from 1° to 90°. The test offset is 0.75 in `FanScene.jsx`. Adjust sign or vector components to match the physical slider mechanism; 0.75 is not a calibrated travel value.
-3. Set fan speed 50–80%. Check for dense blue particles exiting the nozzle. If direction is backwards, change `AIRFLOW_FORWARD_SIGN` in `AirflowParticles.js` from `1` to `-1`.
+## Annotation numbering
 
-Future visual tuning: lower `COUNT` to 1400 on slower GPUs, or lower the `uOpacity` formula for softer airflow.
+- 01 Trigger / Airflow (pointer, left)
+- 02 Battery Module (pointer, left)
+- 03 Fan Opening (pointer, right)
+- 04 Charging Port (pointer, right)
+- 05 View Orbit (left, no pointer)
+- 06 Camera Zoom (left, no pointer)
+
+## Controller
+
+- Circle (○) toggles annotation visibility, equivalent to Hide/Show Labels.
+- Right stick changes 3D view, D-pad up/down zooms.
+- All previous actions remain mapped.
+
+## Charging port out of view
+
+Label stays visible. If its anchor moves offscreen but is still in front of the camera, the leader ends at the viewport boundary. When behind the camera, leader is hidden but label stays visible to avoid misleading direction.
+
+## Important
+
+`FanScene.jsx` imports React. No font asset changes are needed; existing FanPixelMono.ttf remains in use.

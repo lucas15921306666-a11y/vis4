@@ -58,7 +58,7 @@ export default function App() {
     <main className="fan-app-layout">
       <section className="fan-workspace">
         <FanScene speed={guardedFan.speed} opening={fan.opening} charging={guardedFan.charging} swapId={swapId} onSwapComplete={onSwapComplete} onBatteryPowerChange={setBatteryPowerOff} viewInputRef={viewInputRef} />
-        <ControlsPanel fan={guardedFan} />
+
       </section>
 
       <aside className={`fan-interface-column${batteryPowerOff ? " battery-power-off" : ""}`}>
@@ -69,6 +69,7 @@ export default function App() {
           controllerConnected={controllerConnected}
           bridgeConnected={bridgeConnected}
         />
+        <div className="fan-side-controls"><ControlsPanel fan={guardedFan} /></div>
       </aside>
     </main>
   );

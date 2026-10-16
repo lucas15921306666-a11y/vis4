@@ -9,6 +9,18 @@ import { applyFanMaterials } from "./FanMaterials.js";
 import { createStudioLighting } from "./StudioLighting.jsx";
 import { createAirflowParticles } from "./AirflowParticles.js";
 
+// Labels with real 3D anchors. The two free-standing input tips have no pointers.
+const ANNOTATIONS = [
+  { id: "trigger", number: "01", side: "left", label: "TRIGGER / AIRFLOW", hint: "R2 · FAN SPEED" },
+  { id: "battery", number: "02", side: "left", label: "BATTERY MODULE", hint: "× · REPLACE" },
+  { id: "openingT", number: "03", side: "right", label: "FAN OPENING", hint: "LEFT STICK · 1–90°" },
+  { id: "cable", number: "04", side: "right", label: "CHARGING PORT", hint: "△ · CABLE" },
+];
+const INPUT_TIPS = [
+  { id: "orbit", number: "05", label: "VIEW ORBIT", hint: "RIGHT STICK · ROTATE" },
+  { id: "zoom", number: "06", label: "CAMERA ZOOM", hint: "D-PAD ↑ / ↓ · ZOOM" },
+];
+
 const DEADZONE = 0.14;
 const clamp = (n, low, high) => Math.min(high, Math.max(low, n));
 const stick = (n) => Math.abs(n) > DEADZONE ? n : 0;
@@ -40,6 +52,9 @@ const phase = (t, a, b) => smooth((t - a) / (b - a));
  */
 export default function FanScene({ speed, opening = 1, viewInputRef, charging = false, swapId = 0, onSwapComplete, onBatteryPowerChange }) {
   const mountRef = useRef(null);
+  const [showAnnotations, setShowAnnotations] = useState(true);
+  const showAnnotationsRef = useRef(true);
+  showAnnotationsRef.current = showAnnotations;
   const modelRef = useRef(null);
   const speedRef = useRef(speed);
   const openingRef = useRef(opening);
@@ -147,6 +162,73 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
     let swapElapsed = SWAP_DURATION;
     let swapDoneNotified = true;
     let fittedRadius = 5;
+    const calloutNodes = {};
+    const projection = new THREE.Vector3();
+    // Line coordinates are in the current viewport pixel space.
+    function updateAnnotations() {
+      if (!showAnnotationsRef.current) return;
+      const svg = mount.querySelector(".fan-label-lines");
+      if (!svg) return;
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+      if (!w || !h) return;
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+
+      mount.querySelectorAll("[data-fan-label]").forEach((label) => {
+        const key = label.dataset.fanLabel;
+        const node = calloutNodes[key];
+        const line = svg.querySelector(`[data-fan-line="${key}"]`);
+        const dot = svg.querySelector(`[data-fan-dot="${key}"]`);
+        if (!line || !dot) return;
+
+        // Labels are always visible, even when their 3D anchor leaves the viewport
+        // or the corresponding part is temporarily removed/hidden.
+        label.style.display = "";
+
+        if (!node) {
+          line.style.display = "none";
+          dot.style.display = "none";
+          return;
+        }
+
+        // The charging port uses the CONNECTOR'S ORIGIN, never the entire cable's
+        // bounding-box center. All other object callouts use visible bounds.
+        if (key === "cable") {
+          node.getWorldPosition(projection);
+        } else {
+          const box = new THREE.Box3().setFromObject(node);
+          if (!box.isEmpty()) box.getCenter(projection);
+          else node.getWorldPosition(projection);
+        }
+
+        projection.project(camera);
+        const inFront = projection.z > -1 && projection.z < 1;
+        const valid = Number.isFinite(projection.x) && Number.isFinite(projection.y);
+        if (!inFront || !valid) {
+          // Behind the camera: keep the label, hide only an invalid leader line.
+          line.style.display = "none";
+          dot.style.display = "none";
+          return;
+        }
+
+        // Clamp the tip to the view boundary, rather than hiding the label.
+        const inView = Math.abs(projection.x) <= 1 && Math.abs(projection.y) <= 1;
+        const x = clamp((projection.x + 1) * w / 2, 5, w - 5);
+        const y = clamp((1 - projection.y) * h / 2, 5, h - 5);
+        const r = label.getBoundingClientRect();
+        const m = mount.getBoundingClientRect();
+        const labelX = r.left - m.left + (r.left < m.left + w / 2 ? r.width : 0);
+        const labelY = r.top - m.top + r.height / 2;
+        line.style.display = "";
+        dot.style.display = inView ? "" : "none";
+        line.setAttribute("x1", String(labelX));
+        line.setAttribute("y1", String(labelY));
+        line.setAttribute("x2", String(x));
+        line.setAttribute("y2", String(y));
+        dot.setAttribute("cx", String(x));
+        dot.setAttribute("cy", String(y));
+      });
+    }
 
     const loader = new GLTFLoader();
     loader.load(`${import.meta.env.BASE_URL}models/PortableFan.glb`, (gltf) => {
@@ -210,6 +292,16 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
         console.warn("[Camera] Screen_Display not found; using model center.");
       }
 
+      // Prefer a separately named plug mesh/Empty if provided in Blender.
+      // In the current GLB the connector head is 立方体.003, under Charging_Cable.
+      const cableConnector = cable?.getObjectByName("Cable_Connector")
+        || cable?.getObjectByName("Charging_Connector")
+        || cable?.getObjectByName("立方体.003")
+        || cable;
+      console.info("[Annotations] Charging connector origin:", cableConnector?.name);
+      Object.assign(calloutNodes, {
+        trigger, openingT: openingPivotT, battery, cable: cableConnector,
+      });
       modelRef.current = { rotor, trigger };
       setLoading(false);
     }, undefined, () => {
@@ -256,12 +348,25 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
       if (disposed) return;
       raf = requestAnimationFrame(animate);
       const delta = Math.min(clock.getDelta(), 0.05);
-      const input = viewInputRef.current || { x: 0, y: 0, reset: false };
+      const input = viewInputRef?.current || { x: 0, y: 0, zoom: 0, reset: false };
+      if (input.toggleLabels) {
+        input.toggleLabels = false;
+        setShowAnnotations((previous) => !previous);
+      }
       if (input.reset) {
         orbit.yaw = defaults.yaw;
         orbit.pitch = defaults.pitch;
         orbit.radius = defaults.radius;
         input.reset = false;
+      }
+      // D-pad Up zooms in, Down zooms out. Match the mouse-wheel limits.
+      // Multiplicative zoom feels consistent over different GLB scales.
+      if (input.zoom) {
+        orbit.radius = clamp(
+          orbit.radius * Math.exp(-input.zoom * delta * 1.2),
+          fittedRadius * 0.45,
+          fittedRadius * 3
+        );
       }
       orbit.yaw -= stick(input.x || 0) * delta * 2.2;
       orbit.pitch = clamp(orbit.pitch + stick(input.y || 0) * delta * 1.65, -1.45, 1.45);
@@ -342,6 +447,7 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
       }
       if (screenCanvasTexture && !powerOff) screenCanvasTexture.needsUpdate = true;
       grainPass.uniforms.time.value += delta;
+      updateAnnotations();
       composer.render();
     }
     animate();
@@ -383,12 +489,44 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
     <section className="fan-3d-panel" aria-label="Interactive 3D product demo">
       <div className="fan-3d-heading"><span>3D PRODUCT VIEW</span><small>PortableFan.glb</small></div>
       <div className="fan-3d-viewport" ref={mountRef}>
+        <div className="fan-label-toggle-wrap">
+          <span className="fan-label-toggle-title">AI / OBJECT ANALYSIS</span>
+          <span className="fan-label-circle-hint">○ TOGGLE</span>
+          <button className="fan-label-toggle" type="button" aria-pressed={showAnnotations}
+            onClick={() => setShowAnnotations((previous) => !previous)}>
+            {showAnnotations ? "HIDE LABELS" : "SHOW LABELS"}
+          </button>
+        </div>
+        {showAnnotations && <div className="fan-label-overlay" aria-hidden="true">
+          <svg className="fan-label-lines" preserveAspectRatio="none">
+            {ANNOTATIONS.map(({id}) => <React.Fragment key={id}>
+              <line data-fan-line={id} className="fan-label-line" />
+              <circle data-fan-dot={id} className="fan-label-point" r="3" />
+            </React.Fragment>)}
+          </svg>
+          {ANNOTATIONS.map((item) => <div key={item.id}
+            className={`fan-data-label fan-data-label--${item.side} fan-data-label--${item.id}`}
+            data-fan-label={item.id}>
+            <div className="fan-label-index">{item.number} / DETECTED OBJECT</div>
+            <div className="fan-label-name">{item.label}</div>
+            <div className="fan-label-hint">{item.hint}</div>
+          </div>)}
+          <div className="fan-input-tips fan-input-tips--left">
+            {INPUT_TIPS.map((item) => (
+              <div key={item.id} className="fan-data-label fan-data-label--input">
+                <div className="fan-label-index">{item.number} / INPUT GUIDE</div>
+                <div className="fan-label-name">{item.label}</div>
+                <div className="fan-label-hint">{item.hint}</div>
+              </div>
+            ))}
+          </div>
+        </div>}
         {loading && !error && <div className="fan-3d-overlay">Loading model…</div>}
         {error && <div className="fan-3d-overlay fan-3d-error">{error}</div>}
       </div>
       <div className="fan-3d-footer">
         <span>RIGHT STICK / DRAG — ORBIT</span>
-        <span>WHEEL — ZOOM</span>
+        <span>D-PAD ↑ / ↓ · WHEEL — ZOOM</span>
         <span>□ — RESET</span>
       </div>
       {!loading && !error && <div className="fan-3d-nodes">PIVOTS: ROTOR {nodes.rotor ? "✓" : "✕"} · TRIGGER {nodes.trigger ? "✓" : "✕"} · BATTERY {nodes.battery ? "✓" : "✕"} · CABLE {nodes.cable ? "✓" : "✕"} · OLED {nodes.screen ? "✓" : "✕"}</div>}

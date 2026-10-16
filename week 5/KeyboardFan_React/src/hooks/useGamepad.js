@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 
-const BUTTON = { CROSS: 0, TRIANGLE: 3, SQUARE: 2, R2: 7 };
+const BUTTON = { CROSS: 0, TRIANGLE: 3, SQUARE: 2, CIRCLE: 1, R2: 7, DPAD_UP: 12, DPAD_DOWN: 13 };
 const DEADZONE = 0.18;
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
@@ -10,11 +10,11 @@ const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
  */
 export function useGamepad({ opening, setSpeed, setOpening, toggleCharging, onSwapBattery }) {
   const [connected, setConnected] = useState(false);
-  const viewInputRef = useRef({ x: 0, y: 0, reset: false });
+  const viewInputRef = useRef({ x: 0, y: 0, zoom: 0, reset: false, toggleLabels: false });
   const cb = useRef({ setSpeed, setOpening, toggleCharging, onSwapBattery });
   cb.current = { setSpeed, setOpening, toggleCharging, onSwapBattery };
   const openingRef = useRef(1);
-  const buttonEdges = useRef({ triangle: false, square: false, cross: false });
+  const buttonEdges = useRef({ triangle: false, square: false, cross: false, circle: false });
 
   // Synchronize changes from the on-screen slider with the stick's running value.
   useEffect(() => { openingRef.current = opening; }, [opening]);
@@ -35,13 +35,19 @@ export function useGamepad({ opening, setSpeed, setOpening, toggleCharging, onSw
         previousSpeed = null;
         viewInputRef.current.x = 0;
         viewInputRef.current.y = 0;
-        buttonEdges.current = { triangle: false, square: false, cross: false };
+        viewInputRef.current.zoom = 0;
+        buttonEdges.current = { triangle: false, square: false, cross: false, circle: false };
         setConnected((old) => old ? false : old);
       } else {
         lastPadIndex = pad.index;
         setConnected((old) => old ? old : true);
         viewInputRef.current.x = pad.axes[2] || 0;
         viewInputRef.current.y = pad.axes[3] || 0;
+        // The standard DualSense gamepad mapping: 12=Up, 13=Down.
+        // Holding the key continuously zooms in/out in FanScene's render loop.
+        viewInputRef.current.zoom =
+          (pad.buttons[BUTTON.DPAD_UP]?.pressed ? 1 : 0) -
+          (pad.buttons[BUTTON.DPAD_DOWN]?.pressed ? 1 : 0);
         const r2 = pad.buttons[BUTTON.R2]?.value || 0;
         const speed = r2 <= 0.02 ? 0 : Math.round(clamp((r2 - 0.02) / 0.98 * 100, 0, 100));
         if (speed !== previousSpeed) { cb.current.setSpeed(speed); previousSpeed = speed; }
@@ -60,6 +66,12 @@ export function useGamepad({ opening, setSpeed, setOpening, toggleCharging, onSw
         const square = !!pad.buttons[BUTTON.SQUARE]?.pressed;
         if (square && !buttonEdges.current.square) viewInputRef.current.reset = true;
         buttonEdges.current.square = square;
+        // Circle toggles 3D annotation visibility on a new press only.
+        const circle = !!pad.buttons[BUTTON.CIRCLE]?.pressed;
+        if (circle && !buttonEdges.current.circle) {
+          viewInputRef.current.toggleLabels = true;
+        }
+        buttonEdges.current.circle = circle;
       }
       frame = requestAnimationFrame(poll);
     }

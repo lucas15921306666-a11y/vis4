@@ -23,3 +23,97 @@
 .fan-3d-nodes { padding: 0 18px 14px; font-size:10px; line-height:1.5; color:#6d867c; }
 @media (max-width: 1450px) { .fan-app-layout { grid-template-columns: minmax(0,1fr); } .fan-workspace { order:0; } .fan-interface-column { order:1; } }
 @media (max-width: 640px) { .fan-3d-viewport { min-height:330px; height:50vh; } .fan-3d-footer { gap:8px; } }
+
+/* RIGHT COLUMN: LCD, existing Setup/Controller panels, then three sliders. */
+.fan-app-layout { grid-template-columns: minmax(0, 1fr) minmax(520px, 575px); }
+.fan-workspace { display: block; }
+.fan-interface-column { display: flex; flex-direction: column; gap: 18px; }
+.fan-interface-column .display-column { width: 100%; }
+.fan-interface-column .info-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.fan-interface-column .info-panel,
+.fan-interface-column .connection-panel,
+.fan-interface-column .control-guide { width: 100%; min-width: 0; max-width: none; }
+.fan-side-controls { border: 1px solid #303d3d; background: #101417; padding: 18px; }
+.fan-side-controls .controls-panel { padding: 0; margin: 0; width: 100%; max-width: none; }
+.fan-side-controls .control-row:last-child { margin-bottom: 0; }
+.fan-interface-column .info-panel, .fan-interface-column .connection-panel,
+.fan-interface-column .control-guide { border-color:#354345; background:#11191b; }
+.fan-interface-column .info-panel h2, .fan-interface-column .connection-title,
+.fan-interface-column .guide-title { color:#cffa50; font-family:"FanPixel",monospace; font-size:10px; letter-spacing:0; }
+.fan-interface-column .guide-row, .fan-interface-column .connection-row { font-size:11px; }
+.fan-interface-column .guide-note, .fan-interface-column .connection-description { line-height:1.65; }
+
+/* Labels: SVG connector lines track mesh centers, cards stay anchored to viewport. */
+.fan-label-overlay { position:absolute; inset:0; z-index:3; pointer-events:none; overflow:hidden; }
+.fan-label-lines { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.fan-label-line { stroke:#cffb50; stroke-width:1; opacity:.76; stroke-dasharray:3 3; vector-effect:non-scaling-stroke; }
+.fan-label-point { stroke:#cffb50; stroke-width:1; fill:#101417; }
+.fan-data-label { position:absolute; width:155px; border:1px solid rgba(207,251,80,.65); background:rgba(10,18,20,.83); padding:8px 9px; box-shadow:0 0 0 1px rgba(0,0,0,.3); }
+.fan-data-label--left { left:3%; } .fan-data-label--right { right:3%; }
+.fan-data-label--screen { top:13%; } .fan-data-label--trigger { top:45%; } .fan-data-label--battery { top:76%; }
+.fan-data-label--rotor { top:12%; } .fan-data-label--opening { top:36%; }
+.fan-data-label--openingT { top:60%; } .fan-data-label--cable { top:80%; }
+.fan-label-index { color:#8fa5a0; font:8px/1.4 "FanPixel",monospace; letter-spacing:0; }
+.fan-label-name { color:#cffb50; font:10px/1.65 "FanPixel",monospace; margin:3px 0; }
+.fan-label-hint { font:8px/1.65 "FanPixel",monospace; color:#d8e8e4; }
+.fan-label-toggle-wrap { position:absolute; top:13px; right:14px; display:flex; align-items:center; gap:10px; z-index:6; }
+.fan-label-toggle-title { color:#96aca7; font:9px "FanPixel",monospace; }
+.fan-label-toggle { font:9px "FanPixel",monospace; border:1px solid #cffb50; color:#cffb50; background:#091014eb; padding:9px 12px; cursor:pointer; }
+.fan-label-toggle:hover { background:#263225; }
+@media(max-width:1450px) { .fan-app-layout { grid-template-columns: minmax(0,1fr); } .fan-interface-column { max-width: 575px; } }
+@media(max-width:700px) { .fan-interface-column .info-row { grid-template-columns:1fr; } .fan-data-label { width:112px; padding:5px; } .fan-label-name { font-size:8px; } .fan-label-hint,.fan-label-index{font-size:7px;} .fan-label-toggle-title{display:none;} }
+@font-face {
+  font-family: "FanPixel";
+  src: url("/fonts/FanPixelMono.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Refined annotation positioning. Existing header and visibility toggle unchanged. */
+.fan-data-label--trigger { top: 32%; }
+.fan-data-label--battery { top: 65%; }
+.fan-data-label--openingT { top: 35%; }
+.fan-data-label--cable { top: 67%; }
+/* Free-standing AI input tips: no mesh anchors, dots, or SVG connectors. */
+.fan-input-tips {
+  position: absolute;
+  left: 50%;
+  bottom: 15px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 9px;
+  width: max-content;
+  max-width: calc(100% - 24px);
+}
+.fan-data-label--input { position: static; width: 165px; background: rgba(10,18,20,.88); }
+@media(max-width:700px) {
+  .fan-input-tips { bottom: 10px; gap: 5px; }
+  .fan-data-label--input { width: 130px; }
+}
+
+/* V3: 01–06 in reading order. Two free-standing inputs join left column. */
+.fan-data-label--trigger { top: 25%; }
+.fan-data-label--battery { top: 45%; }
+.fan-data-label--openingT { top: 32%; }
+.fan-data-label--cable { top: 65%; }
+.fan-input-tips--left {
+  left: 3%;
+  bottom: 4%;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  width: 155px;
+  gap: 8px;
+}
+.fan-input-tips--left .fan-data-label--input { width: 100%; }
+.fan-label-circle-hint {
+  color: #cffb50;
+  font: 9px "FanPixel", monospace;
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .fan-input-tips--left { left: 3%; bottom: 3%; width: 112px; gap: 6px; }
+  .fan-label-circle-hint { font-size: 8px; }
+  .fan-label-toggle-wrap { gap: 6px; right: 8px; }
+}
