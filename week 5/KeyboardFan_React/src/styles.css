@@ -1,0 +1,91 @@
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #eeeeee;
+  background: #080808;
+  font-synthesis: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; padding: 40px; }
+button, input { font: inherit; }
+button {
+  padding: 7px 12px;
+  border: 1px solid #555;
+  border-radius: 3px;
+  background: #1b1b1b;
+  color: #eee;
+  cursor: pointer;
+}
+button:hover { background: #292929; border-color: #777; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid #cffb50; outline-offset: 3px; }
+.page { display: flex; align-items: flex-start; gap: 60px; max-width: 1300px; margin: auto; }
+.display-column { flex: 0 0 auto; min-width: 0; }
+.display-column h1 { margin: 0 0 20px; font-size: 22px; font-weight: 500; }
+.display-bezel {
+  display: table;
+  padding: 14px;
+  border: 1px solid #333;
+  border-radius: 5px;
+  background: #151515;
+  box-shadow: 0 16px 40px #0009, inset 0 0 14px #ffffff06;
+}
+.lcd-screen {
+  display: block;
+  width: 240px;
+  height: 240px;
+  background: #cffb50;
+  image-rendering: pixelated;
+  box-shadow: inset 0 0 12px #0002, 0 0 10px #cffb5014;
+}
+.scale-controls { display: flex; align-items: center; gap: 8px; margin-top: 18px; }
+.scale-controls label { margin-right: 5px; font-size: 13px; color: #aaa; }
+.scale-controls input { width: 62px; padding: 7px; color: #fff; background: #111; border: 1px solid #444; border-radius: 3px; }
+.info-row { display: flex; align-items: stretch; gap: 14px; margin-top: 22px; }
+.info-panel {
+  width: 268px;
+  flex: 0 0 268px;
+  min-height: 230px;
+  padding: 14px;
+  border: 1px solid #333;
+  background: #101010;
+  font-family: Consolas, "SFMono-Regular", "SF Mono", Menlo, Monaco, "Courier New", monospace;
+}
+.info-panel h2 { margin: 0 0 14px; color: #cffb50; font-size: 11px; font-weight: normal; letter-spacing: .12em; }
+.connection-block { padding: 10px 0; }
+.connection-block + .connection-block { border-top: 1px solid #292929; }
+.connection-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 10px; }
+.connection-status { flex: 0 0 auto; font-size: 9px; letter-spacing: .03em; }
+.connection-status.connected { color: #cffb50; }
+.connection-status.disconnected { color: #ff7777; }
+.connection-block p { margin: 8px 0 0; color: #888; font-size: 10px; line-height: 1.5; }
+.bridge-download { display: inline-block; margin-top: 10px; padding: 7px 9px; border: 1px solid #555; color: #cffb50; font-size: 10px; text-decoration: none; }
+.bridge-download:hover { background: #1d1d1d; border-color: #777; }
+.connection-block .file-note { font-size: 9px; color: #777; }
+.guide-row { display: grid; grid-template-columns: 60px 1fr; gap: 10px; margin-bottom: 8px; font-size: 12px; }
+.guide-row strong { font-weight: normal; color: #fff; }
+.guide-note { margin-top: 12px; padding-top: 10px; border-top: 1px solid #292929; color: #777; font-size: 10px; line-height: 1.5; }
+.controls-panel { width: 460px; flex: 0 1 460px; padding-top: 55px; }
+.control-row { margin-bottom: 32px; }
+.control-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
+.control-header label { font-size: 14px; color: #ddd; }
+.control-value { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.battery-reset { margin-left: 8px; padding: 5px 9px; color: #cffb50; font-size: 11px; }
+.charging-control { display: flex; align-items: center; gap: 7px; margin-left: 10px; cursor: pointer; user-select: none; }
+.charging-control span { font-size: 11px; color: #aaa; }
+.charging-control input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.toggle-track { display: block; position: relative; width: 34px; height: 18px; border: 1px solid #555; border-radius: 20px; background: #202020; transition: background .12s; }
+.toggle-track > span { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #777; transition: left .12s; }
+.charging-control input:checked + .toggle-track { background: #cffb50; border-color: #cffb50; }
+.charging-control input:checked + .toggle-track > span { left: 18px; background: #111; }
+.charging-control input:focus-visible + .toggle-track { outline: 2px solid #cffb50; outline-offset: 3px; }
+input[type="range"] { width: 100%; cursor: pointer; accent-color: #cffb50; }
+@media (max-width: 1120px) {
+  .page { flex-direction: column; gap: 30px; }
+  .controls-panel { width: min(100%, 460px); padding-top: 0; }
+}
+@media (max-width: 620px) {
+  body { padding: 20px; }
+  .info-row { flex-direction: column; }
+  .info-panel { flex-basis: auto; min-height: 0; }
+  .control-header { flex-wrap: wrap; }
+  .control-value { flex-wrap: wrap; }
+}
