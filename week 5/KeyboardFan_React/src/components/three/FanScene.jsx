@@ -332,7 +332,7 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
     const onPointerUp = () => { pointer = null; };
     const onWheel = (event) => {
       event.preventDefault();
-      orbit.radius = clamp(orbit.radius * Math.exp(event.deltaY * 0.001), fittedRadius * 0.15, fittedRadius * 3);
+      orbit.radius = clamp(orbit.radius * Math.exp(event.deltaY * 0.001), fittedRadius * 0.1, fittedRadius * 3);
     };
     const canvas = renderer.domElement;
     canvas.addEventListener("pointerdown", onPointerDown);
@@ -371,7 +371,7 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
       if (input.zoom) {
         orbit.radius = clamp(
           orbit.radius * Math.exp(-input.zoom * delta * 1.2),
-          fittedRadius * 0.15,
+          fittedRadius * 0.1,
           fittedRadius * 3
         );
       }
