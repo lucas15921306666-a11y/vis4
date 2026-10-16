@@ -1,20 +1,20 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 
-const BUTTON = { TRIANGLE: 3, SQUARE: 2, R2: 7 };
+const BUTTON = { CROSS: 0, TRIANGLE: 3, SQUARE: 2, R2: 7 };
 const DEADZONE = 0.18;
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 /** Reads DualSense using the browser Gamepad API. No Python bridge is required for INPUT.
  * The existing useHapticBridge.js continues to handle force feedback independently.
  */
-export function useGamepad({ opening, setSpeed, setOpening, toggleCharging }) {
+export function useGamepad({ opening, setSpeed, setOpening, toggleCharging, onSwapBattery }) {
   const [connected, setConnected] = useState(false);
   const viewInputRef = useRef({ x: 0, y: 0, reset: false });
-  const cb = useRef({ setSpeed, setOpening, toggleCharging });
-  cb.current = { setSpeed, setOpening, toggleCharging };
+  const cb = useRef({ setSpeed, setOpening, toggleCharging, onSwapBattery });
+  cb.current = { setSpeed, setOpening, toggleCharging, onSwapBattery };
   const openingRef = useRef(1);
-  const buttonEdges = useRef({ triangle: false, square: false });
+  const buttonEdges = useRef({ triangle: false, square: false, cross: false });
 
   // Synchronize changes from the on-screen slider with the stick's running value.
   useEffect(() => { openingRef.current = opening; }, [opening]);
@@ -35,7 +35,7 @@ export function useGamepad({ opening, setSpeed, setOpening, toggleCharging }) {
         previousSpeed = null;
         viewInputRef.current.x = 0;
         viewInputRef.current.y = 0;
-        buttonEdges.current = { triangle: false, square: false };
+        buttonEdges.current = { triangle: false, square: false, cross: false };
         setConnected((old) => old ? false : old);
       } else {
         lastPadIndex = pad.index;
@@ -51,6 +51,9 @@ export function useGamepad({ opening, setSpeed, setOpening, toggleCharging }) {
           openingRef.current = clamp(openingRef.current - leftVertical * 30 * dt, 1, 90);
           cb.current.setOpening(Math.round(openingRef.current), true);
         }
+        const cross = !!pad.buttons[BUTTON.CROSS]?.pressed;
+        if (cross && !buttonEdges.current.cross) cb.current.onSwapBattery?.();
+        buttonEdges.current.cross = cross;
         const triangle = !!pad.buttons[BUTTON.TRIANGLE]?.pressed;
         if (triangle && !buttonEdges.current.triangle) cb.current.toggleCharging();
         buttonEdges.current.triangle = triangle;
