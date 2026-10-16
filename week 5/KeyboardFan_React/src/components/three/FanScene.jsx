@@ -81,10 +81,17 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
     scene.background = new THREE.Color("#111417");
 
     const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 500);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance",
+      precision: "highp",
+    });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.0;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(mount.clientWidth || 700, mount.clientHeight || 500);
     mount.appendChild(renderer.domElement);
@@ -93,7 +100,7 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     const grainPass = new ShaderPass(GrainShader);
-    grainPass.uniforms.amount.value = 0.025;
+    grainPass.uniforms.amount.value = 0.012; // Fine film grain; keep material detail visible
     composer.addPass(grainPass);
 
     const disposeStudioLighting = createStudioLighting(scene, renderer);
