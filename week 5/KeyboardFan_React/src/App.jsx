@@ -7,12 +7,14 @@ import { useFanState } from "./hooks/useFanState.js";
 import { useGamepad } from "./hooks/useGamepad.js";
 import { useHapticBridge } from "./hooks/useHapticBridge.js";
 import "./fan3d.css";
+import "./battery-power.css";
 
 export default function App() {
   const fan = useFanState();
   const [scale, setScale] = useState(1);
   const [swapId, setSwapId] = useState(0);
   const [swapping, setSwapping] = useState(false);
+  const [batteryPowerOff, setBatteryPowerOff] = useState(false);
   const swappingRef = useRef(false);
   const fanRef = useRef(fan);
   fanRef.current = fan;
@@ -55,11 +57,11 @@ export default function App() {
   return (
     <main className="fan-app-layout">
       <section className="fan-workspace">
-        <FanScene speed={guardedFan.speed} charging={guardedFan.charging} swapId={swapId} onSwapComplete={onSwapComplete} viewInputRef={viewInputRef} />
+        <FanScene speed={guardedFan.speed} charging={guardedFan.charging} swapId={swapId} onSwapComplete={onSwapComplete} onBatteryPowerChange={setBatteryPowerOff} viewInputRef={viewInputRef} />
         <ControlsPanel fan={guardedFan} />
       </section>
 
-      <aside className="fan-interface-column">
+      <aside className={`fan-interface-column${batteryPowerOff ? " battery-power-off" : ""}`}>
         <DisplayColumn
           fan={guardedFan}
           scale={scale}

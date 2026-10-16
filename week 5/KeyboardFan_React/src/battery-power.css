@@ -1,0 +1,6 @@
+/* Black out the existing 240x240 LCD when the removable battery is out. */
+.battery-power-off .lcd-screen,
+.battery-power-off #screen {
+  filter: brightness(0) !important;
+  background: #000 !important;
+}

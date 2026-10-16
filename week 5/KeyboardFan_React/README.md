@@ -1,103 +1,26 @@
-# Keyboard Cleaning Fan — React Version
+# Battery swap + charging cable fix (V2)
 
-React + Vite conversion of the existing 240×240 LCD keyboard fan prototype. The **React component hierarchy** is separated from **fan state**, **gamepad I/O**, **local WebSocket bridge**, and **pixel Canvas rendering**.
+Copy the following files into your existing React project:
 
-## Start
+- `src/App.jsx` (replace)
+- `src/components/three/FanScene.jsx` (replace)
+- `src/battery-power.css` (new)
 
-Requirements: Node.js 20.19+ or 22.12+.
+You do not need to change the Blender GLB, Gamepad hook, charging UI, or Haptic Bridge.
 
-```bash
-npm install
-npm run dev
-```
+## Changes
 
-Open the local URL printed by Vite (normally `http://localhost:5173`).
+- New Blender local offsets: battery `(0, 0.65, -0.65)` and cable `(0, 0.25, -0.25)`.
+- No charging: cable begins and stays hidden. Charging enabled: cable becomes visible while plugging in, and retracts then hides when disabled.
+- Battery swap: battery moves out 0.25-0.95 s, disappears 0.95-1.3 s, new battery becomes visible and slides in 1.3-2.35 s.
+- Main 240x240 LCD is blacked out via CSS while the battery is disengaged (0.25-2.35 s).
+- The 3D `Screen_Display` mesh is also temporarily replaced with a black unlit material during the same interval, then restored.
+- Power-off state is sent by `FanScene` to `App` through `onBatteryPowerChange`.
+- Retains original React imports, postprocessing, controls, rotor z-axis and trigger x-axis/0.28 angle.
 
-Production bundle:
+## Test
 
-```bash
-npm run build
-```
+Run `npm run dev`; use webpage Reset to 99% or DualSense X to swap.
+Use Charging switch or Triangle to plug or unplug.
 
-Vite produces a `dist/` folder for hosting. This `dist/` has nothing to do with the Python/PyInstaller temporary `dist/` folder.
-
-## Component hierarchy
-
-```text
-App (root: state and device connections)
-├── DisplayColumn
-│   ├── LCDCanvas (240×240 native-resolution rendering)
-│   ├── ScaleControls
-│   └── info-row (responsive side-by-side panels)
-│       ├── SetupPanel (controller and local bridge connection)
-│       └── ControllerGuide (R2, D-pad, Triangle)
-└── ControlsPanel
-    ├── RangeControl (Battery + Reset + Charging)
-    ├── RangeControl (Fan Speed)
-    └── RangeControl (Fan Opening)
-```
-
-## Responsibility boundaries
-
-| Path | Responsibility |
-| --- | --- |
-| `src/App.jsx` | Top-level assembly and device hooks |
-| `src/components/` | React JSX markup only |
-| `src/hooks/useFanState.js` | Fan speed, degree, battery drain/charge, state |
-| `src/hooks/useGamepad.js` | DualSense R2, ↑ / ↓, △ polling and release commit |
-| `src/hooks/useHapticBridge.js` | Local WebSocket haptic bridge connection + messages |
-| `src/hooks/useCanvasDisplay.js` | Bind React values to the pixel engine |
-| `src/rendering/canvasEngine.js` | Canvas frame, fan rotation, charging bar, pixel scans |
-| `src/rendering/pixelFont.js` | Pixel-sharp 5×7 STATE text |
-| `src/utils/format.js` | Pure formatting and status helpers |
-| `src/styles.css` | Page layout and responsive styles |
-| `public/assets/` | Original/derived SVG sprites |
-
-## Assets
-
-The included `frame.svg` and `battery-digits.svg` were derived from the SVG source files provided during the conversation.
-
-The included `opening-digits.svg` and six `degree-*.svg` illustrations are **functional approximations**, not exact copies of your previous hand-crafted versions. For pixel-perfect matching, copy your original SVGs into `public/assets/`, retaining these filenames:
-
-```text
-frame.svg
-battery-digits.svg
-opening-digits.svg
-fan.svg
-degree-1.svg ... degree-6.svg
-```
-
-Canvas pixel layout is 240×240 regardless of screen scale. Degree: 40×40, opening graphics: unscaled 40×30, battery digits: 80×140, battery tiles: 10×10.
-
-## Controller and haptics
-
-Connect a PS5 DualSense by USB or Bluetooth and press any button. The browser supports basic gamepad input without extra Python software.
-
-| Control | Effect |
-| --- | --- |
-| R2 | Fan speed 0–100 |
-| D-pad ↑ / ↓ | Opening angle 1°–90°; LCD commits on release |
-| Triangle △ | Toggle charging |
-
-To enable **controller rumble + adaptive R2 resistance** on Windows, run your current HIDAPI-enabled `KeyboardFanController.exe` separately. The browser connects to `ws://127.0.0.1:8765`.
-
-If you want the React website to provide the EXE download link, put your built Windows file here:
-
-```text
-public/KeyboardFanController.exe
-```
-
-The Windows EXE is **not included** in this ZIP. Browsers cannot automatically run it.
-
-If Python is installed, instead run your `controller_bridge.py` with:
-
-```bash
-python -m pip install pydualsense websockets
-python controller_bridge.py
-```
-
-The bridge script should be the current working version with HIDAPI support and adaptive R2 effects. You do not need to move the Python runtime into React.
-
-## Git
-
-The root `.gitignore` ignores Node caches, Vite build outputs, and temporary Python build folders. Do not ignore `public/KeyboardFanController.exe` if you want others to download it.
+Note: offsets are in the Blender Empty object's parent coordinate system. This update has been syntax inspected, but not tested against physical DualSense hardware or a running browser.

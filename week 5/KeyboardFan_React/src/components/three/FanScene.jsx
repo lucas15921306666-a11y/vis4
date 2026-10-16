@@ -26,59 +26,12 @@ const lerp01 = (t) => Math.min(1, Math.max(0, t));
 const smooth = (t) => { const x = lerp01(t); return x * x * (3 - 2 * x); };
 const phase = (t, a, b) => smooth((t - a) / (b - a));
 
-/** Make a small part-mounted number tag; one per independent battery. */
-function createBatteryNumber(number, referenceBattery) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 144;
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, 256, 144);
-  ctx.fillStyle = "rgba(12, 15, 17, 0.9)";
-  ctx.fillRect(16, 16, 224, 112);
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
-  ctx.lineWidth = 3;
-  ctx.strokeRect(17, 17, 222, 110);
-  ctx.font = "bold 82px monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = "#f2f4f4";
-  ctx.fillText(number, 128, 72);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  const material = new THREE.SpriteMaterial({
-    map: texture, transparent: true, depthTest: false, depthWrite: false,
-  });
-  const tag = new THREE.Sprite(material);
-  tag.name = `Battery_Number_${number}`;
-  // Compute a *battery-local* bounding box, so the tag follows the battery Empty.
-  referenceBattery.updateMatrixWorld(true);
-  const bounds = new THREE.Box3().setFromObject(referenceBattery);
-  const inverse = referenceBattery.matrixWorld.clone().invert();
-  const points = [];
-  for (const x of [bounds.min.x, bounds.max.x]) {
-    for (const y of [bounds.min.y, bounds.max.y]) {
-      for (const z of [bounds.min.z, bounds.max.z]) {
-        points.push(new THREE.Vector3(x, y, z).applyMatrix4(inverse));
-      }
-    }
-  }
-  const localBounds = new THREE.Box3().setFromPoints(points);
-  const size = localBounds.getSize(new THREE.Vector3());
-  const center = localBounds.getCenter(new THREE.Vector3());
-  const span = Math.max(size.x, size.y, size.z, 0.001);
-  tag.position.set(center.x, center.y, localBounds.max.z + span * 0.04);
-  tag.scale.set(span * 0.32, span * 0.18, 1);
-  tag.renderOrder = 900;
-  referenceBattery.add(tag);
-  return tag;
-}
-
 /**
  * 3D Stage 1: load the user's exact GLB hierarchy and animate the pivots.
  * No duplicated fan-speed state: this component only reads speed.
  * viewInputRef is read once per rendered frame, avoiding React rerenders on every stick movement.
  */
-export default function FanScene({ speed, viewInputRef, charging = false, swapId = 0, onSwapComplete }) {
+export default function FanScene({ speed, viewInputRef, charging = false, swapId = 0, onSwapComplete, onBatteryPowerChange }) {
   const mountRef = useRef(null);
   const modelRef = useRef(null);
   const speedRef = useRef(speed);
@@ -89,9 +42,11 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
   const chargingRef = useRef(charging);
   const swapIdRef = useRef(swapId);
   const doneRef = useRef(onSwapComplete);
+  const powerChangeRef = useRef(onBatteryPowerChange);
   chargingRef.current = charging;
   swapIdRef.current = swapId;
   doneRef.current = onSwapComplete;
+  powerChangeRef.current = onBatteryPowerChange;
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -134,17 +89,18 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
     let cable = null;
     let batteryHome = null;
     let cableHome = null;
-    let spareBattery = null;
-    let batteryOne = null;
-    let batteryTwo = null;
-    let activeBattery = 0; // 0 = battery 01, 1 = battery 02
-    let exchangeBattery = 1;
-    let swappedAtMidpoint = false;
-    let cableSlide = 1; // 0 inserted, 1 unplugged
-    let previousCharge = Boolean(chargingRef.current);
-    let cableTransition = false;
-    const removableTextures = [];
-
+    // Cable starts physically unplugged AND hidden. Never show it unless inserting or removing.
+    let cableInsertion = 0;
+    let screen = null;
+    let screenOriginalMaterial = null;
+    const poweredOffScreenMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+    let powerOff = false;
+    const setPowerOff = (off) => {
+      if (powerOff === off) return;
+      powerOff = off;
+      if (screen && screenOriginalMaterial) screen.material = off ? poweredOffScreenMaterial : screenOriginalMaterial;
+      powerChangeRef.current?.(off);
+    };
     let activeSwapId = swapIdRef.current;
     let swapElapsed = SWAP_DURATION;
     let swapDoneNotified = true;
@@ -162,32 +118,13 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
       cable = root.getObjectByName("Charging_Cable");
       batteryHome = battery?.position.clone() || null;
       cableHome = cable?.position.clone() || null;
-      // The Blender cable pose is INSERTED. An idle scene must never display it.
-      cableSlide = chargingRef.current ? 0 : 1;
-      previousCharge = Boolean(chargingRef.current);
-      cableTransition = false;
+      // The Blender cable's exported pose is treated as the inserted pose.
       if (cable && cableHome) {
-        cable.position.copy(cableHome).addScaledVector(CABLE_UNPLUG_OFFSET, cableSlide);
-        cable.visible = Boolean(chargingRef.current);
+        cable.position.copy(cableHome).add(CABLE_UNPLUG_OFFSET);
+        cable.visible = false;
       }
-      if (battery && batteryHome) {
-        // Two physical instances so 01 really disappears before 02 is inserted.
-        batteryOne = battery;
-        // Calculate the label BEFORE adding its clone; clone will get a separate 02 label.
-        const firstLabel = createBatteryNumber("01", batteryOne);
-        removableTextures.push(firstLabel.material);
-        // Clone from the original without its label so 01 is not copied to 02.
-        firstLabel.removeFromParent();
-        batteryTwo = batteryOne.clone(true);
-        firstLabel.position && batteryOne.add(firstLabel);
-        batteryTwo.name = "Battery_02";
-        batteryTwo.position.copy(batteryHome).add(BATTERY_REMOVE_OFFSET);
-        batteryTwo.visible = false;
-        batteryOne.parent.add(batteryTwo);
-        const secondLabel = createBatteryNumber("02", batteryTwo);
-        removableTextures.push(secondLabel.material);
-      }
-      const screen = root.getObjectByName("Screen_Display");
+      screen = root.getObjectByName("Screen_Display");
+      if (screen?.isMesh) screenOriginalMaterial = screen.material;
       triggerOriginal = trigger?.rotation[TRIGGER_LOCAL_AXIS] || 0;
       setNodes({ root: root.name, rotor: !!rotor, trigger: !!trigger, battery: !!battery, cable: !!cable, screen: !!screen });
 
@@ -262,78 +199,45 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
         target.z + orbit.radius * Math.cos(orbit.yaw) * Math.cos(orbit.pitch)
       );
       camera.lookAt(target);
-      // Battery swap: 0–0.8 remove, 0.8–1.2 pause, 1.2–2.2 insert.
-      // With charging active the cable retracts before any battery movement.
+      // Battery swap: release -> remove -> disappear -> new module inserts -> lock.
       if (swapIdRef.current !== activeSwapId) {
         activeSwapId = swapIdRef.current;
         swapElapsed = 0;
         swapDoneNotified = false;
-        swappedAtMidpoint = false;
-        exchangeBattery = 1 - activeBattery;
-        // A swap forcibly disconnects charging; never briefly show the cable.
-        cableSlide = 1;
-        cableTransition = false;
-        if (cable && cableHome) {
-          cable.visible = false;
-          cable.position.copy(cableHome).add(CABLE_UNPLUG_OFFSET);
-        }
       }
       if (!swapDoneNotified) swapElapsed = Math.min(SWAP_DURATION, swapElapsed + delta);
       const swapping = !swapDoneNotified;
 
-      if (batteryOne && batteryTwo && batteryHome) {
-        const batteries = [batteryOne, batteryTwo];
-        const oldPart = batteries[activeBattery];
-        const newPart = batteries[exchangeBattery];
-
-        if (swapping && swapElapsed < 1.22) {
-          // Withdraw 01, hold outside briefly, then hide it at the midpoint.
-          oldPart.visible = true;
-          oldPart.position.copy(batteryHome).addScaledVector(
-            BATTERY_REMOVE_OFFSET, phase(swapElapsed, 0.2, 0.95)
-          );
-          newPart.visible = false;
-        } else if (swapping) {
-          if (!swappedAtMidpoint) {
-            oldPart.visible = false; // 01 disappears while outside the product.
-            newPart.visible = true;  // 02 appears at the same outside position.
-            swappedAtMidpoint = true;
-          }
-          const slide = 1 - phase(swapElapsed, 1.4, 2.45);
-          newPart.position.copy(batteryHome).addScaledVector(BATTERY_REMOVE_OFFSET, slide);
-        } else {
-          batteries[activeBattery].visible = true;
-          batteries[activeBattery].position.copy(batteryHome);
-          batteries[1 - activeBattery].visible = false;
+      if (battery && batteryHome) {
+        let out = 0;
+        if (swapping) {
+          if (swapElapsed < 0.95) out = phase(swapElapsed, 0.25, 0.95);
+          else if (swapElapsed < 1.3) out = 1;
+          else out = 1 - phase(swapElapsed, 1.3, 2.35);
         }
+        battery.position.copy(batteryHome).addScaledVector(BATTERY_REMOVE_OFFSET, out);
+        // Hide OLD battery when fully removed. Show NEW one where it enters.
+        battery.visible = !swapping || swapElapsed < 0.95 || swapElapsed >= 1.3;
       }
 
+      // No battery: the LCD is electrically off (also mirrored onto 2D UI).
+      // Power down as soon as the module begins disengaging, restore when locked.
+      setPowerOff(swapping && swapElapsed >= 0.25 && swapElapsed < 2.35);
+
       if (cable && cableHome) {
-        const shouldCharge = Boolean(chargingRef.current) && !swapping;
-        if (shouldCharge !== previousCharge) {
-          previousCharge = shouldCharge;
-          cableTransition = true;
-          // On insertion show the cable in the unplugged pose FIRST.
-          if (shouldCharge) cable.visible = true;
-        }
-        const goal = shouldCharge ? 0 : 1;
-        if (cableTransition && !swapping) {
-          cableSlide = THREE.MathUtils.damp(cableSlide, goal, 8, delta);
-          if (Math.abs(cableSlide - goal) < 0.004) {
-            cableSlide = goal;
-            cableTransition = false;
-          }
-        } else if (swapping) {
-          cableSlide = 1;
-          cableTransition = false;
-        }
-        cable.position.copy(cableHome).addScaledVector(CABLE_UNPLUG_OFFSET, cableSlide);
-        // Don't set visible=true every frame: that caused the idle cable flash.
-        cable.visible = shouldCharge || (cableTransition && !swapping);
+        // Start from 0 (fully unplugged and invisible). Both direction and
+        // visibility come from the actual insertion progress, never a flash.
+        // If a swap begins during charging, retract before battery slides.
+        const wantsCharge = chargingRef.current && !swapping;
+        const rate = delta / 0.45;
+        cableInsertion = clamp(cableInsertion + (wantsCharge ? rate : -rate), 0, 1);
+        cable.position.copy(cableHome).addScaledVector(CABLE_UNPLUG_OFFSET, 1 - smooth(cableInsertion));
+        cable.visible = cableInsertion > 0.00001;
       }
       if (swapping && swapElapsed >= SWAP_DURATION) {
         swapDoneNotified = true;
-        activeBattery = exchangeBattery;
+        battery && (battery.visible = true);
+        setPowerOff(false);
         doneRef.current?.(activeSwapId);
       }
 
@@ -357,6 +261,7 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointercancel", onPointerUp);
       canvas.removeEventListener("wheel", onWheel);
+      powerChangeRef.current?.(false);
       scene.traverse((obj) => {
         // Dispose the GLTF meshes only. The WebGLRenderer is disposed separately.
         if (obj.isMesh) {
@@ -365,10 +270,7 @@ export default function FanScene({ speed, viewInputRef, charging = false, swapId
           mats.forEach((m) => m?.dispose());
         }
       });
-      removableTextures.forEach((material) => {
-        material.map?.dispose();
-        material.dispose();
-      });
+      poweredOffScreenMaterial.dispose();
       disposeFanMaterials?.();
       disposeStudioLighting();
       composer.dispose();
