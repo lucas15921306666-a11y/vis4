@@ -22,9 +22,11 @@ const TRIGGER_MAX_ANGLE = 0.28; // radians, ~16 degrees
 // Adjust these two vectors if your actual battery/cable slide direction differs.
 const BATTERY_REMOVE_OFFSET = new THREE.Vector3(0, 0.65, -0.65);
 const CABLE_UNPLUG_OFFSET = new THREE.Vector3(0, 0.25, -0.25);
-// Opening-slider: local translation from the original mesh position at 1° to 90°.
-// Adjust this vector if the slider in your model moves in the opposite direction.
-const OPENING_SLIDE_OFFSET = new THREE.Vector3(0, 0, 10); // Visible test travel; tune to actual rail length
+// Both Opening_Pivot and Opening_Pivot_T are direct children of Keyboard_Fan.
+// Move them in opposite directions in their shared parent coordinate system.
+// Set the travel to the actual mechanical throw measured in Blender.
+const OPENING_SLIDE_OFFSET = new THREE.Vector3(0, -0.3, 0);
+const OPENING_T_SLIDE_OFFSET = new THREE.Vector3(0, 0.3, 0);
 const OPENING_SLIDE_DAMPING = 12;
 const SWAP_DURATION = 2.7; // seconds
 const lerp01 = (t) => Math.min(1, Math.max(0, t));
@@ -92,8 +94,10 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
     let rotor = null;
     let trigger = null;
     let triggerOriginal = 0;
-    let openingPart = null;
-    let openingPartHome = null;
+    let openingPivot = null;
+    let openingPivotT = null;
+    let openingPivotHome = null;
+    let openingPivotTHome = null;
     let airflow = null;
     let battery = null;
     let cable = null;
@@ -124,14 +128,16 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
       disposeFanMaterials = applyFanMaterials(root);
       rotor = root.getObjectByName("Rotor_Pivot");
       trigger = root.getObjectByName("Trigger_Pivot");
-      openingPart = root.getObjectByName("贝塞尔曲线.004");
-      openingPartHome = openingPart?.position.clone() || null;
-      if (openingPart) {
-        console.info("[Fan Opening] Found mesh:", openingPart.name,
-          "local position:", openingPart.position.toArray(),
-          "parent:", openingPart.parent?.name);
-      } else {
-        console.warn("[Fan Opening] Missing 贝塞尔曲线.004 in GLB");
+      openingPivot = root.getObjectByName("Opening_Pivot");
+      openingPivotT = root.getObjectByName("Opening_Pivot_T");
+      openingPivotHome = openingPivot?.position.clone() || null;
+      openingPivotTHome = openingPivotT?.position.clone() || null;
+      console.info("[Fan Opening] Pivot status:", {
+        Opening_Pivot: openingPivot ? { parent: openingPivot.parent?.name, start: openingPivotHome.toArray() } : "NOT FOUND",
+        Opening_Pivot_T: openingPivotT ? { parent: openingPivotT.parent?.name, start: openingPivotTHome.toArray() } : "NOT FOUND",
+      });
+      if (openingPivot && openingPivotT && openingPivot.parent !== openingPivotT.parent) {
+        console.warn("[Fan Opening] Pivots have different parents. Opposite offsets may need axis conversion.");
       }
       const airflowOrigin = root.getObjectByName("Airflow_Origin");
       if (airflowOrigin) airflow = createAirflowParticles(airflowOrigin);
@@ -262,14 +268,19 @@ export default function FanScene({ speed, opening = 1, viewInputRef, charging = 
         doneRef.current?.(activeSwapId);
       }
 
-      // One source of truth: React opening state drives both the real sliding
-      // part and the particle cone. Slider and left stick stay synchronized.
-      const opening = clamp(openingRef.current || 1, 1, 90);
-      if (openingPart && openingPartHome) {
-        const slide = (opening - 1) / 89;
-        const targetPosition = openingPartHome.clone().addScaledVector(OPENING_SLIDE_OFFSET, slide);
-        openingPart.position.lerp(targetPosition, 1 - Math.exp(-OPENING_SLIDE_DAMPING * delta));
-        openingPart.updateMatrix();
+      // Opening 1° -> parked at original positions; 90° -> full travel.
+      // Both pivots move in opposite directions, while preserving their
+      // original rotations, scales, and all child mesh transforms.
+      const opening = clamp(openingRef.current ?? 1, 1, 90);
+      const slide = (opening - 1) / 89;
+      const slideAlpha = 1 - Math.exp(-OPENING_SLIDE_DAMPING * delta);
+      if (openingPivot && openingPivotHome) {
+        const goal = openingPivotHome.clone().addScaledVector(OPENING_SLIDE_OFFSET, slide);
+        openingPivot.position.lerp(goal, slideAlpha);
+      }
+      if (openingPivotT && openingPivotTHome) {
+        const goalT = openingPivotTHome.clone().addScaledVector(OPENING_T_SLIDE_OFFSET, slide);
+        openingPivotT.position.lerp(goalT, slideAlpha);
       }
       const speed01 = swapping ? 0 : (speedRef.current || 0) / 100;
       airflow?.update(delta, speed01 * 100, opening, !powerOff && !swapping);
