@@ -1,0 +1,237 @@
+
+/* ==============================
+   MAINCONTENT.CSS
+   ============================== */
+
+.content {
+  flex: 1;
+  min-width: 0;
+
+  padding: 28px;
+  background: var(--black);
+}
+
+/* Heading */
+
+.content h3 {
+  margin: 0 0 40px;
+
+  color: var(--lime);
+
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Button group */
+
+.buttonControls {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+
+  margin-bottom: 16px;
+}
+
+/* Number buttons */
+
+.buttonControls button {
+  flex: 1;
+  min-width: 0;
+  height: 64px;
+
+  background: var(--panel);
+  color: var(--lime);
+
+  border: 1px solid var(--gray);
+  border-radius: 0;
+
+  font-size: 20px;
+  font-weight: 900;
+
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+/* Hover */
+
+.buttonControls button:hover {
+  background: var(--lime);
+  color: var(--black);
+  border-color: var(--lime);
+}
+
+/* Press */
+
+.buttonControls button:active {
+  background: var(--white);
+  color: var(--black);
+}
+
+/* Reset button */
+
+.buttonControls button:nth-child(3) {
+  background: var(--dark);
+  color: var(--white);
+  border-color: var(--gray);
+}
+
+.buttonControls button:nth-child(3):hover {
+  background: var(--white);
+  color: var(--black);
+}
+
+/* Clear History & Results */
+
+.clearButton {
+  display: block;
+  width: 100%;
+  height: 52px;
+
+  background: var(--lime);
+  color: var(--black);
+
+  border: 2px solid var(--lime);
+  border-radius: 0;
+
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.clearButton:hover {
+  background: transparent;
+  color: var(--lime);
+}
+
+.clearButton:active {
+  background: var(--white);
+  color: var(--black);
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+  .content {
+    padding: 24px 16px;
+  }
+
+  .buttonControls {
+    gap: 6px;
+  }
+
+  .buttonControls button {
+    height: 52px;
+    font-size: 16px;
+  }
+}
+
+
+
+/* ==============================
+   ANIMATED DOT BACKGROUND
+   ============================== */
+
+/* Main content background */
+
+.content {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--black);
+}
+
+/* Animated dots */
+
+.content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  pointer-events: none;
+
+  /* Dot pattern */
+  background-image: radial-gradient(
+    circle,
+    var(--lime) 1.5px,
+    transparent 1.8px
+  );
+
+  /* Distance between dots */
+  background-size: 19px 19px;
+
+  /* Fade toward top and left */
+  -webkit-mask-image:
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black 90%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 90%
+    );
+
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent 0%,
+      black 90%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 90%
+    );
+
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+
+  opacity: 0.28;
+
+  animation:
+    dotMove 9s linear infinite,
+    dotPulse 4s ease-in-out infinite alternate;
+}
+
+/* Continuous upward movement */
+
+@keyframes dotMove {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 -19px;
+  }
+}
+
+/* Fade in and out */
+
+@keyframes dotPulse {
+  from {
+    opacity: 0.08;
+  }
+
+  to {
+    opacity: 0.42;
+  }
+}
+
+/* Reduced motion accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+  .content::before {
+    animation: none;
+    opacity: 0.2;
+  }
+}
